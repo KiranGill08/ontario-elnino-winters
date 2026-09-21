@@ -1,0 +1,46 @@
+winter_year,oni_djf,roni_djf,enso_class_oni,strong_el_nino_oni,enso_class_roni,strong_el_nino_roni
+1982,0,0.1,Neutral,False,Neutral,False
+1983,2.1,2.4,El Nino,True,El Nino,True
+1984,-0.6,-0.6,La Nina,False,La Nina,False
+1985,-1,-0.8,La Nina,False,La Nina,False
+1986,-0.4,-0.3,Neutral,False,Neutral,False
+1987,1.2,1.5,El Nino,False,El Nino,True
+1988,0.6,0.5,El Nino,False,El Nino,False
+1989,-1.6,-1.6,La Nina,False,La Nina,False
+1990,0.2,0.3,Neutral,False,Neutral,False
+1991,0.4,0.6,Neutral,False,El Nino,False
+1992,1.5,2.1,El Nino,True,El Nino,True
+1993,0.1,0.6,Neutral,False,El Nino,False
+1994,0.1,0.3,Neutral,False,Neutral,False
+1995,0.9,1.2,El Nino,False,El Nino,False
+1996,-0.9,-0.9,La Nina,False,La Nina,False
+1997,-0.4,-0.2,Neutral,False,Neutral,False
+1998,2.2,2.1,El Nino,True,El Nino,True
+1999,-1.5,-1.6,La Nina,False,La Nina,False
+2000,-1.5,-1.5,La Nina,False,La Nina,False
+2001,-0.8,-0.8,La Nina,False,La Nina,False
+2002,-0.1,-0.2,Neutral,False,Neutral,False
+2003,0.9,0.9,El Nino,False,El Nino,False
+2004,0.3,0.2,Neutral,False,Neutral,False
+2005,0.6,0.5,El Nino,False,El Nino,False
+2006,-0.9,-0.9,La Nina,False,La Nina,False
+2007,0.6,0.6,El Nino,False,El Nino,False
+2008,-1.8,-1.7,La Nina,False,La Nina,False
+2009,-0.9,-1,La Nina,False,La Nina,False
+2010,1.5,1.4,El Nino,True,El Nino,False
+2011,-1.3,-1.4,La Nina,False,La Nina,False
+2012,-0.7,-0.8,La Nina,False,La Nina,False
+2013,-0.2,-0.5,Neutral,False,La Nina,False
+2014,-0.2,-0.4,Neutral,False,Neutral,False
+2015,0.7,0.5,El Nino,False,El Nino,False
+2016,2.5,2.1,El Nino,True,El Nino,True
+2017,-0.1,-0.6,Neutral,False,La Nina,False
+2018,-0.7,-1.1,La Nina,False,La Nina,False
+2019,1,0.7,El Nino,False,El Nino,False
+2020,0.7,0.1,El Nino,False,Neutral,False
+2021,-1,-1.3,La Nina,False,La Nina,False
+2022,-0.8,-1.2,La Nina,False,La Nina,False
+2023,-0.5,-0.9,La Nina,False,La Nina,False
+2024,1.8,1.1,El Nino,True,El Nino,False
+2025,-0.5,-1.1,La Nina,False,La Nina,False
+2026,-0.4,-0.9,Neutral,False,La Nina,False

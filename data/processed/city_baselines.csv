@@ -1,0 +1,7 @@
+city,baseline_mean_temp,baseline_n_winters,baseline_start_winter,baseline_end_winter,baseline_complete,baseline_status,city_name,region,latitude_approx,included_in_proposal,included_in_repo_study
+london,-4.079378907,29,1991,2020,False,partial_available_winter_average,London,Southwest,43.03,False,False
+ottawa,-7.823252838,28,1991,2020,False,partial_available_winter_average,Ottawa,East,45.32,True,True
+sudbury,-10.53780024,29,1991,2020,False,partial_available_winter_average,Sudbury,Northeast,46.63,False,True
+thunderbay,-11.53337035,27,1991,2020,False,partial_available_winter_average,Thunder Bay,Northwest,48.37,True,True
+toronto,-3.590391548,30,1991,2020,True,complete,Toronto Pearson,South-central,43.68,True,True
+windsor,-2.208232867,25,1991,2020,False,partial_available_winter_average,Windsor,Southwest,42.28,True,True

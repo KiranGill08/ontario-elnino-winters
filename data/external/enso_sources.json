@@ -1,0 +1,20 @@
+[
+  {
+    "index": "ONI",
+    "url": "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/oni/v6/",
+    "version": "ERSSTv6",
+    "retrieved_date": "2026-09-21",
+    "file": "oni_v6.html",
+    "sha256": "e4eefa858ffa8a38b47c58a226a9e4801d27918bd1524d26c7108b47838ac477",
+    "values": "Published one-decimal DJF table values"
+  },
+  {
+    "index": "RONI",
+    "url": "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/roni/",
+    "version": "ERSSTv6",
+    "retrieved_date": "2026-09-21",
+    "file": "roni_v6.html",
+    "sha256": "a01e3df387390792b3ca10e8a8ccfe0c718d95f57c60996af782bc3e4337040f",
+    "values": "Published one-decimal DJF table values"
+  }
+]
