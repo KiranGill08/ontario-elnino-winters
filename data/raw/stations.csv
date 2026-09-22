@@ -1,0 +1,11 @@
+label,name,region,record,station_id,climate_id,lat,lon,priority,notes
+windsor,Windsor A,Southwest,newer,54738,,42.28,-82.96,1,Climate ID to confirm; rain and snow missing after about 2018
+windsor,Windsor A,Southwest,older,4716,6139525,42.28,-82.96,2,
+toronto,Toronto Intl A,South-central,newer,51459,6158731,43.68,-79.63,1,Starts about mid-2013
+toronto,Toronto Lester B. Pearson Int'l A,South-central,older,5097,6158733,43.68,-79.63,2,
+ottawa,Ottawa Intl A,East,newer,49568,6106001,45.32,-75.67,1,Climate ID to confirm; NAV CANADA operated
+ottawa,Ottawa Macdonald-Cartier Int'l A,East,older,4337,6106000,45.32,-75.67,2,Daily year list appears to end 2011
+sudbury,Sudbury A,Northeast,newer,50840,6068153,46.63,-80.80,1,Period of record starts 2014; NAV CANADA operated
+sudbury,Sudbury A,Northeast,older,4132,6068150,46.63,-80.80,2,
+thunderbay,Thunder Bay CS,Northwest,newer,30682,6048268,48.37,-89.33,1,ECCC operated; records start about 2003
+thunderbay,Thunder Bay A,Northwest,older,4055,6048261,48.37,-89.33,2,Daily data ends about December 2004
