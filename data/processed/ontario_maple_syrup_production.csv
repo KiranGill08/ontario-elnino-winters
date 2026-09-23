@@ -1,0 +1,47 @@
+year,syrup_thousand_gallons,gross_value_thousand_cad,quality_notes,enso_class_oni,enso_class_roni
+1980,104,2044,pre_1986:survey_not_tap_weighted:methodology_break_at_1986,,
+1981,144,3192,pre_1986:survey_not_tap_weighted:methodology_break_at_1986,,
+1982,171,4068,pre_1986:survey_not_tap_weighted:methodology_break_at_1986,Neutral,Neutral
+1983,158,3768,pre_1986:survey_not_tap_weighted:methodology_break_at_1986,El Nino,El Nino
+1984,184,4571,pre_1986:survey_not_tap_weighted:methodology_break_at_1986,La Nina,La Nina
+1985,221,5720,pre_1986:survey_not_tap_weighted:methodology_break_at_1986,La Nina,La Nina
+1986,135,3794,,Neutral,Neutral
+1987,118,4080,,El Nino,El Nino
+1988,157,5994,,El Nino,El Nino
+1989,151,6264,,La Nina,La Nina
+1990,168,7114,,Neutral,Neutral
+1991,187,8043,,Neutral,El Nino
+1992,300,12702,,El Nino,El Nino
+1993,211,8865,,Neutral,El Nino
+1994,222,9480,,Neutral,Neutral
+1995,242,10079,,El Nino,El Nino
+1996,349,15052,,La Nina,La Nina
+1997,228,10274,,Neutral,Neutral
+1998,175,8285,,El Nino,El Nino
+1999,232,10719,,La Nina,La Nina
+2000,371,17696,,La Nina,La Nina
+2001,222,10825,,La Nina,La Nina
+2002,229,11063,,Neutral,Neutral
+2003,218,10750,,El Nino,El Nino
+2004,218,10928,,Neutral,Neutral
+2005,218,10988,,El Nino,El Nino
+2006,218,11195,,La Nina,La Nina
+2007,224,12088,,El Nino,El Nino
+2008,262,15469,,La Nina,La Nina
+2009,417,25644,,La Nina,La Nina
+2010,288,19225,,El Nino,El Nino
+2011,488,32559,,La Nina,La Nina
+2012,225,14544,,La Nina,La Nina
+2013,449,30845,,Neutral,La Nina
+2014,368,25863,,Neutral,Neutral
+2015,369,26151,,El Nino,El Nino
+2016,398,23286,,El Nino,El Nino
+2017,425,24947,gross_value_thousand_cad:use_with_caution,Neutral,La Nina
+2018,465,23913,,La Nina,La Nina
+2019,502,26535,,El Nino,El Nino
+2020,467,25759,,El Nino,Neutral
+2021,462,26231,,La Nina,La Nina
+2022,590,31672,,La Nina,La Nina
+2023,502,28614,,La Nina,La Nina
+2024,607,33097,,El Nino,El Nino
+2025,690,37852,,La Nina,La Nina

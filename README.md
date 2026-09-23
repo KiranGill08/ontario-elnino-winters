@@ -1,3 +1,9 @@
+ENSO is one of the most important climate phenomena on Earth due to its ability to change global atmospheric circulation, which influences temperature and precipitation across the globe. It has three states/phases:
+
+1. El Nino / warm phase: the unusual warm ocean temperatures in the eastern Pacific
+2. La Nina / cool phase: the unusual cool ocean temperatures in the eastern Pacific
+3. Neutral: neither El Nino nor La Nina
+
 # Ontario Winters and El Niño
 
 A five-station analysis of how past El Niño winters looked in Ontario, from south to north.

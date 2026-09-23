@@ -1,0 +1,31 @@
+﻿"Production and value of maple products (x 1,000) 1 2"
+"Frequency: Annual"
+"Table: 32-10-0354-01 (formerly CANSIM 001-0008)"
+"Release date: 2025-12-11"
+"Geography: Canada, Province or territory"
+""
+""
+
+"Geography","Ontario 3",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+"Maple products 4","1980","1981","1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024","2025"
+,"Gallons",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+"Maple products expressed as syrup, total 4","104","144","171","158","184","221","135","118","157","151","168","187","300","211","222","242","349","228","175","232","371","222","229","218","218","218","218","224","262","417","288","488","225","449","368","369","398","425","465","502","467","462","590","502","607","690"
+,"Dollars",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+"Gross value of maple products 4","2,044","3,192","4,068","3,768","4,571","5,720","3,794","4,080","5,994","6,264","7,114","8,043","12,702","8,865","9,480","10,079","15,052","10,274","8,285","10,719","17,696","10,825","11,063","10,750","10,928","10,988","11,195","12,088","15,469","25,644","19,225","32,559","14,544","30,845","25,863","26,151","23,286","24,947E","23,913","26,535","25,759","26,231","31,672","28,614","33,097","37,852"
+
+Symbol legend:
+E, use with caution
+
+
+
+
+Footnotes:
+1,"Conversion factors: 1 gallon of syrup equals 10.0 pounds of maple sugar. One gallon of syrup weighs 13.24760 pounds. One gallon of syrup equals 10.4 pounds of taffy. Maple taffy is reported by Quebec and Nova Scotia only and commenced reporting in 1965 and 1983 respectively. The conversion of maple taffy to syrup varies with the density of syrup that year."
+2,"Commercial production and value figures exclude inventory."
+3,"Beginning in 1986, survey data for New Brunswick and Ontario are weighted using the number of taps made on maple trees in the spring of the year of the most recently completed census of agriculture."
+4,"“These products are represented by North American Product Classification System (NAPCS) Canada 2017 category 115136 – Maple syrup and other maple products. Data collected for maple butter, maple taffy and maple sugar are converted into a maple syrup equivalent and are included in this category.”"
+
+
+
+"How to cite: Statistics Canada. Table 32-10-0354-01  Production and value of maple products (x 1,000)"
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3210035401

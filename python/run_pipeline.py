@@ -8,9 +8,11 @@ import sys
 import numpy as np
 import pandas as pd
 import config as cfg
-from clean_data import clean_station, winter_reports
+from clean_data import clean_station, clean_maple_syrup, clean_gdp, winter_reports
 from calculate_kpis import (load_enso, winter_kpis, enrich_daily, summarize_groups,
                             comparisons, regional_comparisons, add_metadata)
+from maple_sap_season import build_sap_season_kpis
+from growing_season import build_growing_season_kpis
 
 
 def save_csv(frame, path):
@@ -131,6 +133,60 @@ def main():
     save_csv(trend_sensitivity, processed / 'temperature_trend_sensitivity.csv')
     save_csv(trends, processed / 'temperature_trends.csv')
     save_csv(enso, processed / 'enso_winter_labels.csv')
+
+    # Ontario maple syrup production (Statistics Canada, province-level, annual) is a
+    # different shape from everything else this pipeline validates: one row per
+    # calendar year for the whole province, not per city/winter, and its own record
+    # starts in 1980 rather than cfg.FIRST_WINTER. So it is cleaned and joined to the
+    # ENSO classification for convenience, but written out as its own CSV rather than
+    # merged into `winters` -- it is not covered by validate_results() and its absence
+    # does not fail the run.
+    maple_source = None
+    if cfg.MAPLE_SYRUP_FILE.is_file():
+        maple, maple_profile = clean_maple_syrup(cfg.MAPLE_SYRUP_FILE)
+        maple = maple.merge(enso[['winter_year', 'enso_class_oni', 'enso_class_roni']],
+                             left_on='year', right_on='winter_year', how='left').drop(columns='winter_year')
+        save_csv(maple, processed / 'ontario_maple_syrup_production.csv')
+        maple_source = {'file': str(cfg.MAPLE_SYRUP_FILE.relative_to(cfg.ROOT)),
+                         'sha256': hashlib.sha256(cfg.MAPLE_SYRUP_FILE.read_bytes()).hexdigest()}
+        print(f"Added Ontario maple syrup production: {maple_profile['first_year']}-{maple_profile['last_year']} "
+              f"({maple_profile['use_with_caution_years']} year(s) flagged use-with-caution)", flush=True)
+    else:
+        print(f'Skipping Ontario maple syrup production: no file at {cfg.MAPLE_SYRUP_FILE}', flush=True)
+
+    # Ontario GDP (Statistics Canada, province-level, annual) -- same rationale
+    # and same optional-file handling as maple syrup above.
+    gdp_source = None
+    if cfg.GDP_FILE.is_file():
+        gdp, gdp_profile = clean_gdp(cfg.GDP_FILE, geography='Ontario')
+        gdp = gdp.merge(enso[['winter_year', 'enso_class_oni', 'enso_class_roni']],
+                         left_on='year', right_on='winter_year', how='left').drop(columns='winter_year')
+        save_csv(gdp, processed / 'ontario_gdp.csv')
+        gdp_source = {'file': str(cfg.GDP_FILE.relative_to(cfg.ROOT)),
+                      'sha256': hashlib.sha256(cfg.GDP_FILE.read_bytes()).hexdigest()}
+        print(f"Added Ontario GDP: {gdp_profile['first_year']}-{gdp_profile['last_year']}", flush=True)
+    else:
+        gdp = None
+        print(f'Skipping Ontario GDP: no file at {cfg.GDP_FILE}', flush=True)
+
+    # Sap-season (Feb-Apr) and growing-season (frost-free period) KPIs -- both
+    # derived entirely from the same station data already cleaned above, no
+    # extra source file needed, so these always run (no is_file() guard).
+    # Each rereads and recleans the station CSVs independently rather than
+    # reusing `daily`/`winters`: they use a different calendar-year keying and
+    # a different season window than winter_reports() produces, so they are
+    # kept as their own small, separately-tested functions (see
+    # maple_sap_season.py / growing_season.py) instead of being bent into the
+    # winter_kpis.csv shape. The extra clean pass costs a couple of seconds.
+    sap_season = build_sap_season_kpis(args.input_dir)
+    save_csv(sap_season, processed / 'sap_season_kpis.csv')
+    print(f'Added sap-season KPIs: {len(sap_season):,} city-years', flush=True)
+
+    growing_season = build_growing_season_kpis(args.input_dir)
+    save_csv(growing_season, processed / 'growing_season_kpis.csv')
+    print(f'Added growing-season KPIs: {len(growing_season):,} city-years '
+          f'({int(growing_season["complete"].sum()):,} complete)', flush=True)
+
     save_csv(add_metadata(pd.DataFrame(profiles)), reports / 'station_profile.csv')
     save_csv(pd.concat(reviews, ignore_index=True), reports / 'records_to_review.csv')
     save_csv(pd.concat(months, ignore_index=True), reports / 'monthly_quality.csv')
@@ -147,9 +203,30 @@ def main():
         from extra_charts import create_extra_charts
         create_charts(daily, winters, comparison, trends, output / 'figures')
         create_extra_charts(winters, comparison, output / 'figures')
+
+        from eda_impacts import (heating_demand_by_city, freeze_thaw_vs_maple, enso_vs_freeze_thaw,
+                                 growing_season_by_city, gdp_vs_enso, write_impacts_findings)
+        heating = heating_demand_by_city(winters, output / 'figures')
+        growing_season_stats = growing_season_by_city(growing_season, output / 'figures')
+        freeze_thaw = None
+        enso_freeze_thaw = None
+        if maple_source is not None:
+            freeze_thaw = freeze_thaw_vs_maple(sap_season, maple, output / 'figures')
+            enso_freeze_thaw = enso_vs_freeze_thaw(sap_season)
+        gdp_stat = gdp_vs_enso(gdp, output / 'figures') if gdp_source is not None else None
+        if freeze_thaw is not None and gdp_stat is not None:
+            write_impacts_findings(heating, freeze_thaw, enso_freeze_thaw, growing_season_stats, gdp_stat,
+                                   comparison, output / 'reports')
+        else:
+            print('Skipping eda_impacts_findings.md: needs both the maple syrup and GDP source files present',
+                  flush=True)
     sources = [{'file': str(p.relative_to(args.input_dir)),
                 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in paths]
     sources.append({'file': 'enso_djf.csv', 'sha256': hashlib.sha256(cfg.ENSO_FILE.read_bytes()).hexdigest()})
+    if maple_source is not None:
+        sources.append(maple_source)
+    if gdp_source is not None:
+        sources.append(gdp_source)
     settings = {name: value for name, value in vars(cfg).items()
                 if name.isupper() and isinstance(value, (str, int, float, list, dict, tuple, bool))}
     manifest = {'completed_utc': datetime.now(timezone.utc).isoformat(), 'sources': sources,

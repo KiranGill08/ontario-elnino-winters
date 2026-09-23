@@ -4,6 +4,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INPUT_DIR = ROOT / 'data' / 'interim'
 ENSO_FILE = ROOT / 'data' / 'external' / 'enso_djf.csv'
+# Province-level, annual, not per-station -- see the note in run_pipeline.py on why
+# this is written out as its own CSV rather than merged into the winters table.
+MAPLE_SYRUP_FILE = ROOT / 'data' / 'raw' / 'maple-production.csv'
+# Same rationale: province-level, annual, not per-station.
+GDP_FILE = ROOT / 'data' / 'raw'  / 'ontario-gdp.csv'
 STATIONS = ['london', 'ottawa', 'sudbury', 'thunderbay', 'toronto', 'windsor']
 PRIMARY_STATIONS = ['windsor', 'toronto', 'ottawa', 'thunderbay']
 REPO_STATIONS = ['windsor', 'toronto', 'ottawa', 'sudbury', 'thunderbay']
