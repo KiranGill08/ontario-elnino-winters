@@ -5,9 +5,21 @@ import config as cfg
 from viz_style import COLORS, apply_style, finish
 
 
+def snowfall_note(winters):
+    """One-line footnote naming each station's last usable snowfall winter."""
+    last = winters.loc[winters['snowfall_pass']].groupby('city')['winter_year'].max()
+    ends = '; '.join(f"{cfg.CITY_NAMES[c]} {int(last[c])}" for c in sorted(last.index, key=lambda c: cfg.LATITUDES[c]))
+    return ('Winters failing the missing-data rule are excluded. Last usable snowfall winter (ending year): '
+            + ends + '.')
+
+
+TEMP_NOTE = 'Winters failing the missing-data rule (3 consecutive / 5 total missing days per month) are excluded, so n differs by station.'
+
+
 def create_charts(daily, winters, comparison, trends, folder):
     folder.mkdir(parents=True, exist_ok=True)
     apply_style()
+    snow_note = snowfall_note(winters)
     index = cfg.PRIMARY_INDEX.lower()
     cities = sorted(winters['city'].unique(), key=lambda c: cfg.LATITUDES[c])
     # One panel per location. Always state sample counts and physical units.
@@ -32,7 +44,7 @@ def create_charts(daily, winters, comparison, trends, folder):
         for ax in list(axes.flat)[len(cities):]:
             ax.set_visible(False)
         fig.suptitle(f'{label} by ENSO class | {cfg.PRIMARY_INDEX} | eligible winters ending {cfg.FIRST_WINTER}–{cfg.LAST_WINTER}')
-        finish(fig, folder / f'{metric}_by_enso.png')
+        finish(fig, folder / f'{metric}_by_enso.png', snow_note if metric in ('snowfall_total_cm', 'snow_days') else TEMP_NOTE)
 
     for metric, (label, unit) in cfg.METRICS.items():
         fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharex=True)
@@ -51,7 +63,7 @@ def create_charts(daily, winters, comparison, trends, folder):
             ax.set(title=f'{group} minus Neutral', xlabel=f'Difference ({unit})')
             ax.invert_yaxis()
         fig.suptitle(f'{label} differences | {cfg.PRIMARY_INDEX} | percentile 95% intervals, n=comparison/reference')
-        finish(fig, folder / f'{metric}_differences.png')
+        finish(fig, folder / f'{metric}_differences.png', snow_note if metric in ('snowfall_total_cm', 'snow_days') else TEMP_NOTE)
 
     fig, axes = plt.subplots(3, 2, figsize=(12, 10), sharey=True)
     for ax, city in zip(axes.flat, cities):
@@ -66,13 +78,22 @@ def create_charts(daily, winters, comparison, trends, folder):
             fit = trend['intercept'] + trend['slope_c_per_decade']/10*block['winter_year'] - baseline
             ax.plot(block['winter_year'], fit, color='#252525', linestyle='--', linewidth=1, label='Linear trend')
         ax.axhline(0, color='#c7c7c7', linewidth=.7)
-        ax.set(title=cfg.CITY_NAMES[city], xlabel='Winter ending year', ylabel='Anomaly (degrees C)')
+        gone = block.loc[block['temp_anomaly'].isna(), 'winter_year']
+        if len(gone):  # tick marks along the bottom show excluded winters instead of hiding them
+            ax.plot(gone, [.02] * len(gone), marker='|', linestyle='', color='#111827', markersize=9,
+                    transform=ax.get_xaxis_transform(), label='Excluded winter (missing data)')
+        ax.set(title=f"{cfg.CITY_NAMES[city]} ({int(block['temp_anomaly'].notna().sum())} of {len(block)} winters usable)",
+               xlabel='Winter ending year', ylabel='Anomaly (degrees C)')
     for ax in list(axes.flat)[len(cities):]:
         ax.set_visible(False)
-    handles, labels = axes.flat[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(.5, .958), ncol=4, frameon=False)
+    seen = {}
+    for ax in axes.flat:
+        for h, l in zip(*ax.get_legend_handles_labels()):
+            seen.setdefault(l, h)
+    handles, labels = list(seen.values()), list(seen.keys())
+    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(.5, .958), ncol=5, frameon=False)
     fig.suptitle(f'Temperature anomalies | {cfg.PRIMARY_INDEX} | baseline: eligible winters ending {cfg.BASELINE_START}–{cfg.BASELINE_END}')
-    finish(fig, folder / 'temperature_anomaly_timeline.png')
+    finish(fig, folder / 'temperature_anomaly_timeline.png', TEMP_NOTE)
 
     fig, axes = plt.subplots(3, 2, figsize=(12, 10))
     for ax, city in zip(axes.flat, cities):
@@ -84,4 +105,4 @@ def create_charts(daily, winters, comparison, trends, folder):
         ax.set_visible(False)
     axes.flat[0].legend(fontsize=8)
     fig.suptitle('Winter data coverage | absent dates count as missing measurements')
-    finish(fig, folder / 'winter_data_coverage.png')
+    finish(fig, folder / 'winter_data_coverage.png', 'Coverage counts absent dates as missing. Snowfall drops to zero where a station stopped reporting it.')

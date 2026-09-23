@@ -2,7 +2,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INPUT_DIR = ROOT / 'data' / 'raw'
+INPUT_DIR = ROOT / 'data' / 'interim'
 ENSO_FILE = ROOT / 'data' / 'external' / 'enso_djf.csv'
 STATIONS = ['london', 'ottawa', 'sudbury', 'thunderbay', 'toronto', 'windsor']
 PRIMARY_STATIONS = ['windsor', 'toronto', 'ottawa', 'thunderbay']
@@ -18,7 +18,7 @@ LAST_WINTER = 2026
 BASELINE_START = 1991  # First baseline winter begins December 1990
 BASELINE_END = 2020
 WINTER_MONTHS = [12, 1, 2]
-PRIMARY_INDEX = 'ONI'  # Both ONI and RONI comparisons are always saved
+PRIMARY_INDEX = 'RONI'  # Both ONI and RONI comparisons are always saved
 EL_NINO_THRESHOLD = 0.5
 LA_NINA_THRESHOLD = -0.5
 STRONG_THRESHOLD = 1.5

@@ -144,7 +144,9 @@ def main():
     findings_report(winters, baselines, comparison, regional, reports)
     if not args.no_plots:
         from eda import create_charts
+        from extra_charts import create_extra_charts
         create_charts(daily, winters, comparison, trends, output / 'figures')
+        create_extra_charts(winters, comparison, output / 'figures')
     sources = [{'file': str(p.relative_to(args.input_dir)),
                 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in paths]
     sources.append({'file': 'enso_djf.csv', 'sha256': hashlib.sha256(cfg.ENSO_FILE.read_bytes()).hexdigest()})
