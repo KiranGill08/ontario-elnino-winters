@@ -5,6 +5,7 @@ import pandas as pd
 import config as cfg
 
 
+# Divide the ENSO index values into three classes, plus a strong El Nino flag.
 def classify(values):
     result = pd.Series('Neutral', index=values.index, dtype='string')
     result.loc[values >= cfg.EL_NINO_THRESHOLD] = 'El Nino'
@@ -12,6 +13,7 @@ def classify(values):
     return result.mask(values.isna())
 
 
+#Load the ENSO table and classify each winter into El Nino, La Nina, or Neutral.
 def load_enso(path):
     enso = pd.read_csv(path)
     required = ['winter_year', 'oni_djf', 'roni_djf']
@@ -29,7 +31,7 @@ def load_enso(path):
         enso[f'strong_el_nino_{name}'] = enso[f'{name}_djf'] >= cfg.STRONG_THRESHOLD
     return enso.reset_index()
 
-
+#add city names, regions, and latitude to a DataFrame of winters or comparisons.
 def add_metadata(frame):
     result = frame.copy()
     result['city_name'] = result['city'].map(cfg.CITY_NAMES)
@@ -39,7 +41,7 @@ def add_metadata(frame):
     result['included_in_repo_study'] = result['city'].isin(cfg.REPO_STATIONS)
     return result
 
-
+#wrap winter KPIs with baseline calculations, ENSO values, and detrended residuals.
 def winter_kpis(winters, enso):
     result = winters.copy()
     selected = result.loc[result['winter_year'].between(cfg.BASELINE_START, cfg.BASELINE_END)]

@@ -15,7 +15,6 @@ correlation check already run for the DJF window, for direct comparison.
 import numpy as np
 import pandas as pd
 import config as cfg
-from clean_data import clean_station, spring_reports
 
 SAP_SEASON_MONTHS = (2, 3, 4)  # February-April
 BASELINE_START, BASELINE_END = cfg.BASELINE_START, cfg.BASELINE_END
