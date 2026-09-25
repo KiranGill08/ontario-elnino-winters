@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import config as cfg
-from viz_style import COLORS, apply_style, finish
+from eda.viz_style import COLORS, apply_style, finish
 
 
 def snowfall_note(winters):

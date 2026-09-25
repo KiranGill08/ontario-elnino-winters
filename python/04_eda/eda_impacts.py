@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import config as cfg
-from viz_style import COLORS, apply_style
+from viz_style import COLORS, apply_style, close
 
 REPORTS = cfg.ROOT / 'reports'
 PROCESSED = cfg.ROOT / 'data' / 'processed'
@@ -118,7 +118,7 @@ def heating_demand_by_city(winters, folder=REPORTS):
     fig.text(0.02, 0.02, note, fontsize=7.4, color='#64748b', va='bottom')
     folder.mkdir(parents=True, exist_ok=True)
     fig.savefig(folder / 'eda_heating_demand_by_city.png')
-    plt.close(fig)
+    close(fig)
     print(f'Saved {folder / "eda_heating_demand_by_city.png"}')
     return result
 
@@ -166,7 +166,7 @@ def freeze_thaw_vs_maple(sap_season, maple, folder=REPORTS):
     fig.text(0.02, 0.02, note, fontsize=7.3, color='#64748b', va='bottom')
     folder.mkdir(parents=True, exist_ok=True)
     fig.savefig(folder / 'eda_freeze_thaw_vs_maple.png')
-    plt.close(fig)
+    close(fig)
     print(f'Saved {folder / "eda_freeze_thaw_vs_maple.png"}')
     return {'r': r, 'lo': lo, 'hi': hi, 'status': status, 'n': n}
 
@@ -236,7 +236,7 @@ def growing_season_by_city(growing_season, folder=REPORTS):
     fig.text(0.02, 0.02, note, fontsize=7.3, color='#64748b', va='bottom')
     folder.mkdir(parents=True, exist_ok=True)
     fig.savefig(folder / 'eda_growing_season_by_city.png')
-    plt.close(fig)
+    close(fig)
     print(f'Saved {folder / "eda_growing_season_by_city.png"}')
     return result
 
@@ -280,7 +280,7 @@ def gdp_vs_enso(gdp, folder=REPORTS):
     fig.text(0.02, 0.02, note, fontsize=7.3, color='#64748b', va='bottom')
     folder.mkdir(parents=True, exist_ok=True)
     fig.savefig(folder / 'eda_gdp_growth_vs_enso.png')
-    plt.close(fig)
+    close(fig)
     print(f'Saved {folder / "eda_gdp_growth_vs_enso.png"}')
     return {'diff': diff_stat[0], 'lo': diff_stat[1], 'hi': diff_stat[2], 'status': diff_stat[3]}
 

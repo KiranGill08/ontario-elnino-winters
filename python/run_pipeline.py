@@ -83,12 +83,12 @@ def findings_report(winters, baselines, comparison, regional, folder):
     (folder / 'findings.md').write_text('\n'.join(lines), encoding='utf-8')
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--input-dir', type=Path, default=cfg.INPUT_DIR)
     parser.add_argument('--output-dir', type=Path)
     parser.add_argument('--no-plots', action='store_true')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     cfg.validate()
     stamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')
     output = args.output_dir or cfg.ROOT / 'runs' / stamp
@@ -204,6 +204,9 @@ def main():
         create_charts(daily, winters, comparison, trends, output / 'figures')
         create_extra_charts(winters, comparison, output / 'figures')
 
+        from eda_scratch import create_scratch_charts
+        create_scratch_charts(winters, comparison, trends, output / 'figures')
+
         from eda_impacts import (heating_demand_by_city, freeze_thaw_vs_maple, enso_vs_freeze_thaw,
                                  growing_season_by_city, gdp_vs_enso, write_impacts_findings)
         heating = heating_demand_by_city(winters, output / 'figures')
@@ -235,6 +238,10 @@ def main():
                 'validation': 'passed'}
     (output / 'run_manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
     print(f'Finished: {output}', flush=True)
+    # Hand the in-memory results back so a notebook can chart them.
+    return {'output': output, 'daily': daily, 'winters': winters, 'comparison': comparison,
+            'trends': trends, 'regional': regional, 'sap_season': sap_season,
+            'growing_season': growing_season, 'maple': maple if maple_source else None, 'gdp': gdp}
 
 
 if __name__ == '__main__':

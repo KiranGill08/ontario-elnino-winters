@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Patch
 from matplotlib.lines import Line2D
 import config as cfg
-from viz_style import COLORS, apply_style, finish
+from viz_style import COLORS, apply_style, finish, close
 
 INK = '#1f2937'
 MUTED = '#64748b'
@@ -131,7 +131,7 @@ def usability_grid(winters, folder):
     fig.suptitle('Which winters can be used, by station and measure')
     fig.subplots_adjust(left=.22)
     fig.savefig(folder / 'winter_usability_grid.png', bbox_inches='tight')
-    plt.close(fig)
+    close(fig)
 
 
 def oni_vs_roni(comparison, folder):

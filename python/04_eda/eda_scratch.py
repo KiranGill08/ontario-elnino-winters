@@ -12,8 +12,8 @@ data/processed/winter_kpis.csv:
     python python/eda_scratch.py
 
 To add a new EDA chart later: write a new function that takes the winters
-DataFrame and calls finish(fig, REPORTS / 'your_file.png'), then call it from
-main().
+DataFrame and a folder, calls finish(fig, folder / 'your_file.png'), then call it
+from create_scratch_charts().
 """
 from pathlib import Path
 
@@ -47,7 +47,7 @@ def load_temperature_trends():
     return pd.read_csv(path)
 
 
-def boxplot_anomaly_by_enso(winters):
+def boxplot_anomaly_by_enso(winters, folder=REPORTS):
     """Box plot of winter temperature anomaly by ENSO class, one panel per station."""
     index = cfg.PRIMARY_INDEX.lower()
     eligible = winters.loc[winters['temperature_pass'] & winters['temp_anomaly'].notna()]
@@ -81,11 +81,11 @@ def boxplot_anomaly_by_enso(winters):
     fig.suptitle('Winter temperature anomaly by ENSO class, by station', fontsize=15, y=0.985)
     note = (f'{cfg.PRIMARY_INDEX} classification. Eligible winters only (temperature_pass). '
             'Exploratory: see enso_comparisons.csv for the bootstrap significance test on the means.')
-    finish(fig, REPORTS / 'eda_temp_anomaly_by_enso.png', note)
-    print(f'Saved {REPORTS / "eda_temp_anomaly_by_enso.png"}')
+    finish(fig, folder / 'eda_temp_anomaly_by_enso.png', note)
+    print(f'Saved {folder / 'eda_temp_anomaly_by_enso.png'}')
 
 
-def barchart_el_nino_minus_neutral(comparisons):
+def barchart_el_nino_minus_neutral(comparisons, folder=REPORTS):
     """Bar chart of the El Nino minus Neutral mean-temperature difference by
     station, with 95% bootstrap confidence intervals. Stations are ordered
     south to north, so the bars show the latitude gradient directly."""
@@ -125,11 +125,11 @@ def barchart_el_nino_minus_neutral(comparisons):
     note = (f'{cfg.PRIMARY_INDEX} classification, mean_temp. Error bars are 95% bootstrap intervals '
             f'({cfg.BOOTSTRAP_SAMPLES:,} resamples). * = interval excludes zero. Stations ordered by '
             'latitude (Windsor south to Thunder Bay north).')
-    finish(fig, REPORTS / 'eda_el_nino_minus_neutral_by_station.png', note)
-    print(f'Saved {REPORTS / "eda_el_nino_minus_neutral_by_station.png"}')
+    finish(fig, folder / 'eda_el_nino_minus_neutral_by_station.png', note)
+    print(f'Saved {folder / 'eda_el_nino_minus_neutral_by_station.png'}')
 
 
-def timeline_anomaly_with_trend(winters, trends):
+def timeline_anomaly_with_trend(winters, trends, folder=REPORTS):
     """Timeline of winter temperature anomaly, one panel per station, El Nino
     winters highlighted, with a per-city linear trend line overlaid."""
     index = cfg.PRIMARY_INDEX.lower()
@@ -172,11 +172,11 @@ def timeline_anomaly_with_trend(winters, trends):
 
     note = (f'{cfg.PRIMARY_INDEX} classification. Baseline: eligible winters ending {cfg.BASELINE_START}–{cfg.BASELINE_END}. '
             'Dashed line is each city’s own linear trend (temperature_trends.csv), not a fit to El Nino winters alone.')
-    finish(fig, REPORTS / 'eda_temp_anomaly_timeline.png', note)
-    print(f'Saved {REPORTS / "eda_temp_anomaly_timeline.png"}')
+    finish(fig, folder / 'eda_temp_anomaly_timeline.png', note)
+    print(f'Saved {folder / 'eda_temp_anomaly_timeline.png'}')
 
 
-def boxplot_snowfall_by_enso(winters):
+def boxplot_snowfall_by_enso(winters, folder=REPORTS):
     """Box plot of total winter snowfall by ENSO class, one panel per station."""
     index = cfg.PRIMARY_INDEX.lower()
     eligible = winters.loc[winters['snowfall_pass'] & winters['snowfall_total_cm'].notna()]
@@ -216,11 +216,11 @@ def boxplot_snowfall_by_enso(winters):
     note = (f'{cfg.PRIMARY_INDEX} classification. Eligible winters only (snowfall_pass). Last usable snowfall winter '
             f'(ending year): {ends}. Sample sizes differ across cities for this reason, not just ENSO class. '
             'Exploratory: see enso_comparisons.csv for the bootstrap significance test on the means.')
-    finish(fig, REPORTS / 'eda_snowfall_by_enso.png', note)
-    print(f'Saved {REPORTS / "eda_snowfall_by_enso.png"}')
+    finish(fig, folder / 'eda_snowfall_by_enso.png', note)
+    print(f'Saved {folder / 'eda_snowfall_by_enso.png'}')
 
 
-def barchart_cold_days_by_enso(winters):
+def barchart_cold_days_by_enso(winters, folder=REPORTS):
     """Bar chart of mean very-cold days (below -20C) by ENSO class, one panel
     per station. Error bars are the standard error of the mean."""
     index = cfg.PRIMARY_INDEX.lower()
@@ -250,21 +250,25 @@ def barchart_cold_days_by_enso(winters):
             'error bars are +-1 standard error of the mean (not a bootstrap interval). Southern stations (Windsor, '
             'Toronto Pearson, London) have very few very-cold days overall, so their bars sit close to zero. '
             'Exploratory: see enso_comparisons.csv for the bootstrap significance test.')
-    finish(fig, REPORTS / 'eda_cold_days_by_enso.png', note)
-    print(f'Saved {REPORTS / "eda_cold_days_by_enso.png"}')
+    finish(fig, folder / 'eda_cold_days_by_enso.png', note)
+    print(f'Saved {folder / 'eda_cold_days_by_enso.png'}')
+
+
+def create_scratch_charts(winters, comparisons, trends, folder=REPORTS):
+    """Make every scratch chart into `folder`. run_pipeline.py calls this with its
+    in-memory results so all charts land in the run's figures/ folder."""
+    folder.mkdir(parents=True, exist_ok=True)
+    apply_style()
+    boxplot_anomaly_by_enso(winters, folder)
+    barchart_el_nino_minus_neutral(comparisons, folder)
+    timeline_anomaly_with_trend(winters, trends, folder)
+    boxplot_snowfall_by_enso(winters, folder)
+    barchart_cold_days_by_enso(winters, folder)
 
 
 def main():
-    REPORTS.mkdir(parents=True, exist_ok=True)
-    apply_style()
-    winters = load_winter_kpis()
-    boxplot_anomaly_by_enso(winters)
-    comparisons = load_enso_comparisons()
-    barchart_el_nino_minus_neutral(comparisons)
-    trends = load_temperature_trends()
-    timeline_anomaly_with_trend(winters, trends)
-    boxplot_snowfall_by_enso(winters)
-    barchart_cold_days_by_enso(winters)
+    """Standalone use: read the saved CSVs and write into reports/."""
+    create_scratch_charts(load_winter_kpis(), load_enso_comparisons(), load_temperature_trends())
 
 
 if __name__ == '__main__':
