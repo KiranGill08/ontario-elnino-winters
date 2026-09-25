@@ -14,7 +14,13 @@ correlation check already run for the DJF window, for direct comparison.
 """
 import numpy as np
 import pandas as pd
+import sys
+from pathlib import Path
+# Let this script find config.py and the modules in the numbered subfolders.
+_PY = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(_PY)] + sorted(str(p) for p in _PY.iterdir() if p.is_dir() and p.name[:2].isdigit())
 import config as cfg
+from clean_data import clean_station, spring_reports
 
 SAP_SEASON_MONTHS = (2, 3, 4)  # February-April
 BASELINE_START, BASELINE_END = cfg.BASELINE_START, cfg.BASELINE_END

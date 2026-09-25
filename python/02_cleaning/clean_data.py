@@ -2,6 +2,11 @@
 import csv
 import numpy as np
 import pandas as pd
+import sys
+from pathlib import Path
+# Let this script find config.py and the modules in the numbered subfolders.
+_PY = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(_PY)] + sorted(str(p) for p in _PY.iterdir() if p.is_dir() and p.name[:2].isdigit())
 from config import (COLUMNS, NUMERIC, MISSING, TEMPERATURE_SCREEN_C,
                     MAX_MONTHLY_MISSING, MAX_CONSECUTIVE_MISSING,
                     SNOW_DAY_CM, COLD_DAY_C, WINTER_MONTHS)
@@ -243,7 +248,7 @@ def clean_maple_syrup(path):
     """Read a Statistics Canada "Production and value of maple products" CSV
     (table 32-10-0354-01, one province per file, wide by year) and return a tidy
     one-row-per-year table plus a profile dict. Not yet wired into run_pipeline.py --
-    call this directly, the same way eda_scratch.py is run separately.
+    call this directly, the same way the other standalone scripts are run.
 
     Note on joining to the rest of this project: StatCan's "year" here is a
     calendar year, and the maple season it reports (roughly February-April) falls

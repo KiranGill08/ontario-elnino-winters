@@ -7,12 +7,36 @@ import json
 import sys
 import numpy as np
 import pandas as pd
+# Let this script find config.py and the modules in the numbered subfolders.
+_PY = Path(__file__).resolve().parent
+sys.path[:0] = [str(_PY)] + sorted(str(p) for p in _PY.iterdir() if p.is_dir() and p.name[:2].isdigit())
 import config as cfg
 from clean_data import clean_station, clean_maple_syrup, clean_gdp, winter_reports
 from calculate_kpis import (load_enso, winter_kpis, enrich_daily, summarize_groups,
                             comparisons, regional_comparisons, add_metadata)
 from maple_sap_season import build_sap_season_kpis
 from growing_season import build_growing_season_kpis
+
+
+# Every chart saves the exact rows it plots to data/chart_data/<chart name>.csv.
+# This map (data/chart_data_index.csv) links each chart to that file and to the
+# pipeline table(s) the rows come from.
+METRIC_CHARTS = ['mean_temp', 'temp_anomaly', 'snowfall_total_cm', 'snow_days', 'days_below_m20']
+CHART_SOURCES = (
+    [(f'{m}_by_enso.png', 'winter_kpis', f'Box plot of {m} per winter by ENSO class') for m in METRIC_CHARTS]
+    + [(f'{m}_differences.png', 'enso_comparisons', f'El Nino/Strong El Nino minus Neutral for {m}, 95% CI')
+       for m in METRIC_CHARTS]
+    + [('temperature_anomaly_timeline.png', 'winter_kpis; temperature_trends', 'Anomaly per winter plus linear trend'),
+       ('winter_data_coverage.png', 'winter_kpis', 'temperature_coverage_pct and snowfall_coverage_pct'),
+       ('latitude_gradient.png', 'enso_comparisons', 'Differences plotted against latitude_approx'),
+       ('index_vs_temp_anomaly.png', 'winter_kpis; chart_index_vs_anomaly_slopes', 'enso_value vs temp_anomaly, fitted line'),
+       ('winter_usability_grid.png', 'winter_kpis', 'temperature_pass, snowfall_pass, cold_days_pass'),
+       ('oni_vs_roni.png', 'enso_comparisons', 'Same differences under enso_index ONI and RONI'),
+       ('eda_heating_demand_by_city.png', 'winter_kpis', 'HDD difference by city, 95% CI'),
+       ('eda_freeze_thaw_vs_maple.png', 'sap_season_kpis; ontario_maple_syrup_production; chart_impact_tests',
+        'Freeze-thaw days vs detrended maple production'),
+       ('eda_growing_season_by_city.png', 'growing_season_kpis', 'Growing-season difference, 95% CI'),
+       ('eda_gdp_growth_vs_enso.png', 'ontario_gdp; chart_impact_tests', 'GDP growth by year and ENSO class')])
 
 
 def save_csv(frame, path):
@@ -81,6 +105,31 @@ def findings_report(winters, baselines, comparison, regional, folder):
               '- `temperature_trend_sensitivity.csv` compares residuals after fitting a linear trend per city. Those intervals condition on the fitted trend and do not include trend-estimation uncertainty.',
               '- The weather data cannot establish budget savings, staffing needs, total energy use or next winter’s conditions.', '']
     (folder / 'findings.md').write_text('\n'.join(lines), encoding='utf-8')
+
+
+def save_chart_tables(processed, extra, heating, growing, freeze_thaw, enso_freeze_thaw, gdp_stat):
+    """Save the statistics shown on charts but not stored in any plotted table
+    (slopes, test results), plus the chart-to-data map. The plotted rows themselves
+    are saved by each chart into data/chart_data/."""
+    save_csv(extra['index_vs_anomaly_slopes'], processed / 'chart_index_vs_anomaly_slopes.csv')
+    tests = []
+    if freeze_thaw is not None:
+        tests.append({'test': 'freeze_thaw_days_vs_maple_residual', 'statistic': 'pearson_r',
+                      'estimate': freeze_thaw['r'], 'ci_lower': freeze_thaw['lo'], 'ci_upper': freeze_thaw['hi'],
+                      'status': freeze_thaw['status'], 'n_comparison': freeze_thaw['n'], 'n_reference': None})
+        tests.append({'test': 'freeze_thaw_days_el_nino_minus_neutral', 'statistic': 'mean_difference_days',
+                      'estimate': enso_freeze_thaw['diff'], 'ci_lower': enso_freeze_thaw['lo'],
+                      'ci_upper': enso_freeze_thaw['hi'], 'status': enso_freeze_thaw['status'],
+                      'n_comparison': enso_freeze_thaw['n_en'], 'n_reference': enso_freeze_thaw['n_ne']})
+    if gdp_stat is not None:
+        tests.append({'test': 'gdp_growth_el_nino_minus_neutral', 'statistic': 'mean_difference_pct_points',
+                      'estimate': gdp_stat['diff'], 'ci_lower': gdp_stat['lo'], 'ci_upper': gdp_stat['hi'],
+                      'status': gdp_stat['status'], 'n_comparison': None, 'n_reference': None})
+    save_csv(pd.DataFrame(tests), processed / 'chart_impact_tests.csv')
+    index = pd.DataFrame(CHART_SOURCES, columns=['chart_file', 'source_tables', 'what_is_plotted'])
+    index.insert(1, 'chart_data_file', 'chart_data/' + index['chart_file'].str.replace('.png', '.csv', regex=False))
+    save_csv(index, processed / 'chart_data_index.csv')
+    print(f'Saved chart data tables to {processed}', flush=True)
 
 
 def main(argv=None):
@@ -200,12 +249,7 @@ def main(argv=None):
     findings_report(winters, baselines, comparison, regional, reports)
     if not args.no_plots:
         from eda import create_charts
-        from extra_charts import create_extra_charts
-        create_charts(daily, winters, comparison, trends, output / 'figures')
-        create_extra_charts(winters, comparison, output / 'figures')
-
-        from eda_scratch import create_scratch_charts
-        create_scratch_charts(winters, comparison, trends, output / 'figures')
+        extra = create_charts(daily, winters, comparison, trends, output / 'figures')
 
         from eda_impacts import (heating_demand_by_city, freeze_thaw_vs_maple, enso_vs_freeze_thaw,
                                  growing_season_by_city, gdp_vs_enso, write_impacts_findings)
@@ -217,6 +261,8 @@ def main(argv=None):
             freeze_thaw = freeze_thaw_vs_maple(sap_season, maple, output / 'figures')
             enso_freeze_thaw = enso_vs_freeze_thaw(sap_season)
         gdp_stat = gdp_vs_enso(gdp, output / 'figures') if gdp_source is not None else None
+        save_chart_tables(processed, extra, heating, growing_season_stats,
+                          freeze_thaw, enso_freeze_thaw, gdp_stat)
         if freeze_thaw is not None and gdp_stat is not None:
             write_impacts_findings(heating, freeze_thaw, enso_freeze_thaw, growing_season_stats, gdp_stat,
                                    comparison, output / 'reports')

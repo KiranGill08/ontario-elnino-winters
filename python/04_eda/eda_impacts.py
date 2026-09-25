@@ -1,10 +1,9 @@
 """EDA charts for El Nino's downstream impacts -- heating demand, maple syrup
 production, growing-season length, and provincial GDP -- beyond the core
-winter-climate metrics covered by eda.py / eda_scratch.py.
+winter-climate metrics covered by eda.py.
 
 Run standalone (as below), each chart is saved into reports/ with an 'eda_'
-prefix, alongside a companion reports/eda_impacts_findings.md -- same scratch
-convention as eda_scratch.py. Every chart function also takes an optional
+prefix, alongside a companion reports/eda_impacts_findings.md. Every chart function also takes an optional
 `folder` argument, which is how run_pipeline.py calls these same functions to
 save the per-run copies into <output>/figures/ instead.
 
@@ -29,8 +28,13 @@ separate plot.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import sys
+from pathlib import Path
+# Let this script find config.py and the modules in the numbered subfolders.
+_PY = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(_PY)] + sorted(str(p) for p in _PY.iterdir() if p.is_dir() and p.name[:2].isdigit())
 import config as cfg
-from viz_style import COLORS, apply_style, close
+from viz_style import COLORS, apply_style, close, save_chart_data
 
 REPORTS = cfg.ROOT / 'reports'
 PROCESSED = cfg.ROOT / 'data' / 'processed'
@@ -91,7 +95,10 @@ def heating_demand_by_city(winters, folder=REPORTS):
         en = block.loc[block['enso_class_roni'].isin(['El Nino', 'Strong El Nino']), 'hdd_18']
         ne = block.loc[block['enso_class_roni'].eq('Neutral'), 'hdd_18']
         diff, lo, hi, status = bootstrap_diff(en, ne)
-        rows.append({'city': city, 'pct': diff / ne.mean() * 100, 'pct_lo': lo / ne.mean() * 100,
+        rows.append({'city': city, 'n_el_nino': len(en), 'n_neutral': len(ne),
+                     'el_nino_mean_hdd': en.mean(), 'neutral_mean_hdd': ne.mean(),
+                     'diff_hdd': diff, 'ci_lower_hdd': lo, 'ci_upper_hdd': hi,
+                     'pct': diff / ne.mean() * 100, 'pct_lo': lo / ne.mean() * 100,
                      'pct_hi': hi / ne.mean() * 100, 'status': status})
     result = pd.DataFrame(rows).set_index('city')
 
@@ -118,6 +125,7 @@ def heating_demand_by_city(winters, folder=REPORTS):
     fig.text(0.02, 0.02, note, fontsize=7.4, color='#64748b', va='bottom')
     folder.mkdir(parents=True, exist_ok=True)
     fig.savefig(folder / 'eda_heating_demand_by_city.png')
+    save_chart_data(result.reset_index(), folder / 'eda_heating_demand_by_city.png')
     close(fig)
     print(f'Saved {folder / "eda_heating_demand_by_city.png"}')
     return result
@@ -132,8 +140,12 @@ def freeze_thaw_vs_maple(sap_season, maple, folder=REPORTS):
     maple = maple.copy()
     maple['maple_residual'] = maple['syrup_thousand_gallons'] - (intercept + slope * x_year)
 
+    maple['maple_trend'] = intercept + slope * x_year
     province_avg = sap_season.groupby('year')['freeze_thaw_days'].mean().reset_index()
-    merged = maple[['year', 'maple_residual']].merge(province_avg, on='year', how='inner').dropna()
+    keep = ['year', 'syrup_thousand_gallons', 'maple_trend', 'maple_residual'] + \
+           [c for c in ['enso_class_oni', 'enso_class_roni'] if c in maple.columns]
+    merged = maple[keep].merge(province_avg, on='year', how='inner').dropna(
+        subset=['maple_residual', 'freeze_thaw_days'])
     a, b = merged['maple_residual'].to_numpy(), merged['freeze_thaw_days'].to_numpy()
     n = len(a)
     r, lo, hi, status = bootstrap_corr(a, b)
@@ -166,9 +178,11 @@ def freeze_thaw_vs_maple(sap_season, maple, folder=REPORTS):
     fig.text(0.02, 0.02, note, fontsize=7.3, color='#64748b', va='bottom')
     folder.mkdir(parents=True, exist_ok=True)
     fig.savefig(folder / 'eda_freeze_thaw_vs_maple.png')
+    save_chart_data(merged.assign(fitted_residual=fit_intercept + fit_slope * merged['freeze_thaw_days']),
+                    folder / 'eda_freeze_thaw_vs_maple.png')
     close(fig)
     print(f'Saved {folder / "eda_freeze_thaw_vs_maple.png"}')
-    return {'r': r, 'lo': lo, 'hi': hi, 'status': status, 'n': n}
+    return {'r': r, 'lo': lo, 'hi': hi, 'status': status, 'n': n, 'data': merged}
 
 
 def enso_vs_freeze_thaw(sap_season):
@@ -200,7 +214,8 @@ def growing_season_by_city(growing_season, folder=REPORTS):
         en = block.loc[block['enso_class_roni'].isin(['El Nino', 'Strong El Nino']), 'growing_season_days']
         ne = block.loc[block['enso_class_roni'].eq('Neutral'), 'growing_season_days']
         diff, lo, hi, status = bootstrap_diff(en, ne)
-        rows.append({'label': cfg.CITY_NAMES[city], 'diff': diff, 'lo': lo, 'hi': hi, 'status': status})
+        rows.append({'city': city, 'label': cfg.CITY_NAMES[city], 'n_el_nino': len(en), 'n_neutral': len(ne),
+                     'diff': diff, 'lo': lo, 'hi': hi, 'status': status})
 
     province = complete.groupby('year').agg(
         growing_season_days=('growing_season_days', 'mean'),
@@ -211,7 +226,8 @@ def growing_season_by_city(growing_season, folder=REPORTS):
     en = province.loc[province['enso_class_roni'].isin(['El Nino', 'Strong El Nino']), 'growing_season_days']
     ne = province.loc[province['enso_class_roni'].eq('Neutral'), 'growing_season_days']
     diff, lo, hi, status = bootstrap_diff(en, ne)
-    rows.append({'label': 'Province-wide\naverage', 'diff': diff, 'lo': lo, 'hi': hi, 'status': status})
+    rows.append({'city': 'province', 'label': 'Province-wide\naverage', 'n_el_nino': len(en), 'n_neutral': len(ne),
+                 'diff': diff, 'lo': lo, 'hi': hi, 'status': status})
     result = pd.DataFrame(rows)
 
     apply_style()
@@ -236,6 +252,8 @@ def growing_season_by_city(growing_season, folder=REPORTS):
     fig.text(0.02, 0.02, note, fontsize=7.3, color='#64748b', va='bottom')
     folder.mkdir(parents=True, exist_ok=True)
     fig.savefig(folder / 'eda_growing_season_by_city.png')
+    save_chart_data(result.assign(label=result['label'].str.replace('\n', ' ')).rename(
+        columns={'diff': 'diff_days', 'lo': 'ci_lower', 'hi': 'ci_upper'}), folder / 'eda_growing_season_by_city.png')
     close(fig)
     print(f'Saved {folder / "eda_growing_season_by_city.png"}')
     return result
@@ -280,6 +298,7 @@ def gdp_vs_enso(gdp, folder=REPORTS):
     fig.text(0.02, 0.02, note, fontsize=7.3, color='#64748b', va='bottom')
     folder.mkdir(parents=True, exist_ok=True)
     fig.savefig(folder / 'eda_gdp_growth_vs_enso.png')
+    save_chart_data(gdp, folder / 'eda_gdp_growth_vs_enso.png')
     close(fig)
     print(f'Saved {folder / "eda_gdp_growth_vs_enso.png"}')
     return {'diff': diff_stat[0], 'lo': diff_stat[1], 'hi': diff_stat[2], 'status': diff_stat[3]}
@@ -295,8 +314,7 @@ def write_impacts_findings(heating, freeze_thaw, enso_freeze_thaw, growing_seaso
     province_gs = growing_season.loc[growing_season['label'].str.startswith('Province')].iloc[0]
 
     lines = ['# EDA impacts findings', '',
-             'Companion to the 4 charts in this folder with an `eda_` prefix added after the original 5 '
-             '(temperature, snowfall, cold days). Computed directly from `data/processed/*.csv` -- see the '
+             'Companion to the 4 impact charts in this folder with an `eda_` prefix. Computed directly from `data/processed/*.csv` -- see the '
              'module docstring in `eda_impacts.py` for which script produces each input. Exploratory, not '
              'the project’s reviewed results.', '',
 
