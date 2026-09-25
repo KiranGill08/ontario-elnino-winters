@@ -8,6 +8,10 @@ from pathlib import Path
 import hashlib
 import json
 import pandas as pd
+import sys
+# Let this script find config.py and the modules in the numbered subfolders.
+_PY = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(_PY)] + sorted(str(p) for p in _PY.iterdir() if p.is_dir() and p.name[:2].isdigit())
 import config as cfg
 
 URLS = {

@@ -106,6 +106,33 @@ In `enso_comparisons.csv`, `difference = comparison_mean - reference_mean`. `met
 
 `temperature_trends.csv` reports each city's fitted slope in °C per decade, intercept and eligible sample size. `temperature_trend_sensitivity.csv` repeats group comparisons on fitted residuals. Its intervals condition on the fitted trend and do not include uncertainty from estimating that trend.
 
+## Chart data tables
+
+Every chart saves the exact rows it plots, as a CSV named after the image, in `data/chart_data/`
+(for example `figures/snow_days_by_enso.png` -> `data/chart_data/snow_days_by_enso.csv`). A database or
+Power BI can rebuild any chart from these files alone. Pipeline and notebook runs both write them; a
+`--no-plots` run skips them. Running a chart script on its own writes them to a `chart_data/` folder next
+to its images.
+
+| File pattern | One row per | Main fields |
+|---|---|---|
+| `<metric>_by_enso.csv` (box plots) | city × winter shown | `city`, `winter_year`, `enso_class`, the metric value |
+| `<metric>_differences.csv` | city × comparison group | `difference`, `ci_lower`, `ci_upper`, `status`, group sizes |
+| `temperature_anomaly_timeline.csv` | city × winter | `temp_anomaly`, `trend_fit` (anomaly on the fitted trend line), `excluded` |
+| `winter_data_coverage.csv`, `winter_usability_grid.csv` | city × winter | coverage percentages, or `temperature_pass` / `snowfall_pass` |
+| `latitude_gradient.csv`, `oni_vs_roni.csv` | city × metric (× index) | `difference`, `ci_lower`, `ci_upper`, `latitude` |
+| `index_vs_temp_anomaly.csv` | city × winter | `enso_value`, `temp_anomaly`, `fitted_anomaly` |
+| `eda_heating_demand_by_city.csv` | city | Heating-degree-day means (base 18 °C) for El Niño and Neutral, difference and 95% CI in HDD and %, `status` |
+| `eda_growing_season_by_city.csv` | city (`province` = province-wide average) | Frost-free season difference in days, 95% CI, group sizes |
+| `eda_freeze_thaw_vs_maple.csv` | year | Maple production, trend, detrended residual, freeze-thaw days, `fitted_residual`, ENSO classes |
+| `eda_gdp_growth_vs_enso.csv` | year | Real GDP, growth %, ENSO classes |
+
+Two more tables in `data/` hold statistics printed on charts but not stored in the plotted rows:
+`chart_index_vs_anomaly_slopes.csv` (slope, bootstrap 95% CI and r per city) and `chart_impact_tests.csv`
+(the maple/freeze-thaw correlation, the El Niño effect on freeze-thaw days, and the GDP difference).
+`chart_data_index.csv` lists every chart with its data file (`chart_data_file`), its pipeline source
+tables and what it plots. `status` is `interval_excludes_zero` when the 95% interval excludes zero,
+otherwise `inconclusive`.
 ## Reading with pandas
 
 ```python
