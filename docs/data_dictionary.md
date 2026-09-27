@@ -8,7 +8,7 @@ Use a daily enriched CSV to inspect measurements. Its unique key is `(city, date
 
 **Winter KPIs repeat on each daily row belonging to that winter. Do not sum or average those repeated fields across daily rows to summarize winters.** Use the winter table, which gives each winter one row.
 
-Blank numeric fields mean missing, unavailable or ineligible, depending on the accompanying quality fields. They never mean zero. CSV booleans are `True`/`False`; an absent winter-level field on a daily row is blank. For MySQL, convert booleans to 1/0 and blanks to SQL NULL before loading. Treat `station_id` as an identifier, not a measurement.
+Blank numeric fields mean missing, unavailable or ineligible, depending on the accompanying quality fields. They never mean zero. CSV booleans are `True`/`False`; an absent winter-level field on a daily row is blank. The SQLite database (`sql/ontario_enso.db`) stores booleans as 1/0 and blanks as NULL; the loader converts them. Treat `station_id` as an identifier, not a measurement.
 
 ## Location and source fields
 
@@ -119,7 +119,7 @@ to its images.
 | `<metric>_by_enso.csv` (box plots) | city × winter shown | `city`, `winter_year`, `enso_class`, the metric value |
 | `<metric>_differences.csv` | city × comparison group | `difference`, `ci_lower`, `ci_upper`, `status`, group sizes |
 | `temperature_anomaly_timeline.csv` | city × winter | `temp_anomaly`, `trend_fit` (anomaly on the fitted trend line), `excluded` |
-| `winter_data_coverage.csv`, `winter_usability_grid.csv` | city × winter | coverage percentages, or `temperature_pass` / `snowfall_pass` |
+| `winter_usability_grid.csv` | city × winter | `temperature_pass`, `snowfall_pass` |
 | `latitude_gradient.csv`, `oni_vs_roni.csv` | city × metric (× index) | `difference`, `ci_lower`, `ci_upper`, `latitude` |
 | `index_vs_temp_anomaly.csv` | city × winter | `enso_value`, `temp_anomaly`, `fitted_anomaly` |
 | `eda_heating_demand_by_city.csv` | city | Heating-degree-day means (base 18 °C) for El Niño and Neutral, difference and 95% CI in HDD and %, `status` |

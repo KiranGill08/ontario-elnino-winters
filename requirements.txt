@@ -1,0 +1,8 @@
+# Python packages for the Ontario Winters and El Nino project.
+# Install with:  pip install -r requirements.txt
+pandas>=2.2
+numpy>=1.26
+matplotlib>=3.8
+lxml>=5.0            # prepare_enso.py reads the saved NOAA pages with pandas.read_html
+requests>=2.31       # 01_collection/download_station_data.py (only needed to re-download)
+notebook>=7.0        # notebooks/eda.ipynb (optional)

@@ -261,9 +261,9 @@ def growing_season_by_city(growing_season, folder=REPORTS):
 
 def gdp_vs_enso(gdp, folder=REPORTS):
     gdp = gdp.dropna(subset=['gdp_growth_pct']).copy()
-    diff_stat = bootstrap_diff(
-        gdp.loc[gdp['enso_class_roni'].isin(['El Nino', 'Strong El Nino']), 'gdp_growth_pct'],
-        gdp.loc[gdp['enso_class_roni'].eq('Neutral'), 'gdp_growth_pct'])
+    gdp_en = gdp.loc[gdp['enso_class_roni'].isin(['El Nino', 'Strong El Nino']), 'gdp_growth_pct']
+    gdp_ne = gdp.loc[gdp['enso_class_roni'].eq('Neutral'), 'gdp_growth_pct']
+    diff_stat = bootstrap_diff(gdp_en, gdp_ne)
 
     apply_style()
     fig, ax = plt.subplots(figsize=(11, 6.1))
@@ -287,10 +287,11 @@ def gdp_vs_enso(gdp, folder=REPORTS):
                     arrowprops=dict(arrowstyle='-', color='#94a3b8', linewidth=0.8), zorder=1)
         ax.text(year, label_y, label, fontsize=7.4, color='#334155', ha='center', va='top')
     ax.set_ylabel('Ontario real GDP growth (year over year, %)')
-    ax.legend(loc='upper left', frameon=False, fontsize=9, ncol=3)
+    ax.legend(loc='lower left', bbox_to_anchor=(0, 1.0), frameon=False, fontsize=9, ncol=3,
+              borderaxespad=0.2, handletextpad=0.3)
     fig.suptitle('Does El Nino show up in Ontario’s economic growth?', fontsize=13.5, y=0.955, color='#111827')
     ax.set_title('The biggest swings are all recessions, and they don’t line up with any one ENSO class',
-                  fontsize=10, color='#475569', pad=10)
+                  fontsize=10, color='#475569', pad=26)
     note = ('Real (chained 2017 dollars) Ontario GDP at market prices, Statistics Canada table 36-10-0222-01. Bootstrap 95% CI:\n'
             f'El Nino(+Strong) vs. Neutral growth diff = {diff_stat[0]:+.2f} pts, CI [{diff_stat[1]:+.2f}, {diff_stat[2]:+.2f}], {diff_stat[3]}.\n'
             'GDP is driven overwhelmingly by global/national forces unrelated to any one winter’s weather -- a real winter effect on\n'
@@ -301,7 +302,8 @@ def gdp_vs_enso(gdp, folder=REPORTS):
     save_chart_data(gdp, folder / 'eda_gdp_growth_vs_enso.png')
     close(fig)
     print(f'Saved {folder / "eda_gdp_growth_vs_enso.png"}')
-    return {'diff': diff_stat[0], 'lo': diff_stat[1], 'hi': diff_stat[2], 'status': diff_stat[3]}
+    return {'diff': diff_stat[0], 'lo': diff_stat[1], 'hi': diff_stat[2], 'status': diff_stat[3],
+            'n_en': len(gdp_en), 'n_ne': len(gdp_ne)}
 
 
 def write_impacts_findings(heating, freeze_thaw, enso_freeze_thaw, growing_season, gdp_stat, comparisons, folder=REPORTS):

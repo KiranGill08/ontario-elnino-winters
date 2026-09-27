@@ -46,9 +46,12 @@ def create_charts(daily, winters, comparison, trends, folder):
     snow_note = snowfall_note(winters)
     index = cfg.PRIMARY_INDEX.lower()
     cities = sorted(winters['city'].unique(), key=lambda c: cfg.LATITUDES[c])
+    # mean_temp is not charted: its El Nino/Neutral differences are identical to temp_anomaly's
+    # (anomaly = mean temperature minus a fixed per-city baseline). It stays in the data tables.
+    chart_metrics = {m: v for m, v in cfg.METRICS.items() if m != 'mean_temp'}
     # One panel per location. Always state sample counts and physical units.
-    for metric, (label, unit) in cfg.METRICS.items():
-        fig, axes = plt.subplots(3, 2, figsize=(12, 11), squeeze=False, sharey=True)
+    for metric, (label, unit) in chart_metrics.items():
+        fig, axes = plt.subplots(3, 2, figsize=(12, 11), squeeze=False, sharey=metric != 'days_below_m20')
         for ax, city in zip(axes.flat, cities):
             block = winters.loc[winters['city'].eq(city)]
             values = [block.loc[block[f'enso_class_{index}'].eq(g), metric].dropna().to_numpy() for g in cfg.CLASS_ORDER]
@@ -68,10 +71,13 @@ def create_charts(daily, winters, comparison, trends, folder):
         for ax in list(axes.flat)[len(cities):]:
             ax.set_visible(False)
         fig.suptitle(f'{label} by ENSO class | {cfg.PRIMARY_INDEX} | eligible winters ending {cfg.FIRST_WINTER}–{cfg.LAST_WINTER}')
-        finish(fig, folder / f'{metric}_by_enso.png', snow_note if metric in ('snowfall_total_cm', 'snow_days') else TEMP_NOTE,
+        note = snow_note if metric in ('snowfall_total_cm', 'snow_days') else TEMP_NOTE
+        if metric == 'days_below_m20':
+            note += ' Each city has its own vertical scale.'
+        finish(fig, folder / f'{metric}_by_enso.png', note,
                data=_points(winters, metric, index))
 
-    for metric, (label, unit) in cfg.METRICS.items():
+    for metric, (label, unit) in chart_metrics.items():
         fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharex=True)
         for ax, group in zip(axes, ['El Nino', 'Strong El Nino']):
             selected = comparison.loc[comparison['enso_index'].eq(cfg.PRIMARY_INDEX)
@@ -131,18 +137,6 @@ def create_charts(daily, winters, comparison, trends, folder):
     fig.suptitle(f'Temperature anomalies | {cfg.PRIMARY_INDEX} | baseline: eligible winters ending {cfg.BASELINE_START}–{cfg.BASELINE_END}')
     finish(fig, folder / 'temperature_anomaly_timeline.png', TEMP_NOTE, data=pd.concat(timeline, ignore_index=True))
 
-    fig, axes = plt.subplots(3, 2, figsize=(12, 10))
-    for ax, city in zip(axes.flat, cities):
-        block = winters.loc[winters['city'].eq(city)]
-        for column, label in [('temperature_coverage_pct', 'Temperature'), ('snowfall_coverage_pct', 'Snowfall')]:
-            ax.plot(block['winter_year'], block[column], label=label)
-        ax.set(title=cfg.CITY_NAMES[city], xlabel='Winter ending year', ylabel='Valid daily measurements (%)', ylim=(-3, 103))
-    for ax in list(axes.flat)[len(cities):]:
-        ax.set_visible(False)
-    axes.flat[0].legend(fontsize=8)
-    fig.suptitle('Winter data coverage | absent dates count as missing measurements')
-    finish(fig, folder / 'winter_data_coverage.png', 'Coverage counts absent dates as missing. Snowfall drops to zero where a station stopped reporting it.',
-           data=winters[['city', 'city_name', 'winter_year', 'temperature_coverage_pct', 'snowfall_coverage_pct']])
 
     # Latitude, index-strength, data-usability and index-choice charts
     latitude_gradient(comparison, folder)
@@ -164,27 +158,28 @@ def latitude_gradient(comparison, folder):
     panels = [('mean_temp', 'Mean winter temperature', 'Difference (degrees C)'),
               ('snowfall_total_cm', 'Total winter snowfall', 'Difference (cm)'),
               ('snow_days', 'Snow days', 'Difference (days)')]
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    fig, axes = plt.subplots(1, 3, figsize=(15, 6.2))
     for ax, (metric, title, ylabel) in zip(axes, panels):
         rows = _pair(comparison, cfg.PRIMARY_INDEX, metric)
+        ticks = []
         for k, (city, row) in enumerate(rows.sort_index(key=lambda i: [cfg.LATITUDES[c] for c in i]).iterrows()):
             if not np.isfinite(row['difference']):
                 continue
             lat = cfg.LATITUDES[city]
             ax.plot([lat, lat], [row['ci_lower'], row['ci_upper']], color=COLORS['El Nino'], linewidth=1.8)
             ax.scatter(lat, row['difference'], s=40, color=COLORS['El Nino'], zorder=3)
-            ax.annotate(f"{cfg.CITY_NAMES[city]}\nn={int(row['n_comparison'])}/{int(row['n_reference'])}",
-                        (lat, row['ci_upper']), textcoords='offset points', xytext=(0, 5 + 22 * (k % 2)),
-                        ha='center', fontsize=8, color=INK)
+            ticks.append((lat, f"{cfg.CITY_NAMES[city]} {lat:.1f}°N  "
+                               f"(n={int(row['n_comparison'])}/{int(row['n_reference'])})"))
         ax.axhline(0, color=MUTED, linewidth=1)
-        ax.margins(y=.18)
-        ax.set(title=title, xlabel='Station latitude (degrees N)', ylabel=ylabel)
+        ax.set_xticks([t for t, _ in ticks], [lbl for _, lbl in ticks], rotation=40, ha='right', fontsize=8)
+        ax.set_xlim(41.6, 49.0)
+        ax.set(title=title, xlabel='Station, south to north (placed at true latitude)', ylabel=ylabel)
     fig.suptitle(f'El Nino minus Neutral by latitude | {cfg.PRIMARY_INDEX} | 95% intervals, n=El Nino/neutral winters')
     fig.text(.01, .005, 'Winters failing the missing-data rule are excluded, so group sizes differ by station. '
              'Snowfall covers different years at each station.', fontsize=8, color=MUTED)
     plotted = pd.concat([_pair(comparison, cfg.PRIMARY_INDEX, m).reset_index() for m, _, _ in panels])
     plotted = plotted.loc[plotted['difference'].notna(), ['city', 'city_name', 'enso_index', 'metric', 'difference',
-                                                          'ci_lower', 'ci_upper', 'status']]
+                                                          'ci_lower', 'ci_upper', 'status', 'n_comparison', 'n_reference']]
     plotted.insert(2, 'latitude', plotted['city'].map(cfg.LATITUDES))
     finish(fig, folder / 'latitude_gradient.png', data=plotted)
 

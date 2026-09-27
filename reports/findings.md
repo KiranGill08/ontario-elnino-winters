@@ -85,13 +85,13 @@ The strength of El Niño matters, not just its presence. Across all winters, a s
 | Station | Snow days: El Niño − neutral | Snow days: Strong − neutral | Snowfall (cm): Strong − neutral |
 |---|---|---|---|
 | Windsor | **−7.5 [−13.7, −1.7]** | **−12.4 [−19.5, −5.6]** | **−61 [−105, −21]** |
-| London | −6.8 [−14.1, +1.5] | **−11.8 [−18.0, −5.2]** | **−52 [−101, −0.4]** |
+| London | −6.8 [−14.1, +1.5] | **−11.8 [−18.0, −5.2]** | −52 [−101, −0.4] (borderline) |
 | Toronto Pearson | **−6.1 [−9.6, −2.5]** | **−9.4 [−12.5, −6.0]** | **−30 [−52, −8]** |
 | Ottawa | −2.1 [−7.2, +2.5] | −4.1 [−9.7, +1.1] | −11 [−49, +28] |
 | Sudbury | −1.9 [−7.0, +3.0] | −2.2 [−7.5, +2.8] | −28 [−79, +28] |
 | Thunder Bay | −5.5 [−13.7, +2.3] | −3.0 [−10.3, +4.3] | −18 [−44, +4] |
 
-El Niño winters had fewer snow days and less snow everywhere, but the clear results are in the south. Toronto and Windsor had significantly fewer snow days in both El Niño and Strong El Niño winters, and Strong El Niño winters brought 30–60 cm less snow in Windsor, London and Toronto. In Ottawa and Sudbury the differences were smaller and inconclusive.
+El Niño winters had fewer snow days and less snow everywhere, but the clear results are in the south. Toronto and Windsor had significantly fewer snow days in both El Niño and Strong El Niño winters, and Strong El Niño winters brought 30–60 cm less snow in Windsor and Toronto. London's 52 cm less snow is borderline: its interval only just excludes zero. In Ottawa and Sudbury the differences were smaller and inconclusive.
 
 Thunder Bay's snow results rest on very few winters (6 El Niño and 3 neutral), so they should not be relied on. Its one significant result, 32 cm less snowfall in El Niño winters, appears in the snowfall chart below but is not treated as a finding.
 

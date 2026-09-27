@@ -1,1 +1,0 @@
-#Pictres from the screenshots of Power BI

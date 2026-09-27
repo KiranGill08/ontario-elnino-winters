@@ -21,13 +21,12 @@ from growing_season import build_growing_season_kpis
 # Every chart saves the exact rows it plots to data/chart_data/<chart name>.csv.
 # This map (data/chart_data_index.csv) links each chart to that file and to the
 # pipeline table(s) the rows come from.
-METRIC_CHARTS = ['mean_temp', 'temp_anomaly', 'snowfall_total_cm', 'snow_days', 'days_below_m20']
+METRIC_CHARTS = ['temp_anomaly', 'snowfall_total_cm', 'snow_days', 'days_below_m20']
 CHART_SOURCES = (
     [(f'{m}_by_enso.png', 'winter_kpis', f'Box plot of {m} per winter by ENSO class') for m in METRIC_CHARTS]
     + [(f'{m}_differences.png', 'enso_comparisons', f'El Nino/Strong El Nino minus Neutral for {m}, 95% CI')
        for m in METRIC_CHARTS]
     + [('temperature_anomaly_timeline.png', 'winter_kpis; temperature_trends', 'Anomaly per winter plus linear trend'),
-       ('winter_data_coverage.png', 'winter_kpis', 'temperature_coverage_pct and snowfall_coverage_pct'),
        ('latitude_gradient.png', 'enso_comparisons', 'Differences plotted against latitude_approx'),
        ('index_vs_temp_anomaly.png', 'winter_kpis; chart_index_vs_anomaly_slopes', 'enso_value vs temp_anomaly, fitted line'),
        ('winter_usability_grid.png', 'winter_kpis', 'temperature_pass, snowfall_pass, cold_days_pass'),
@@ -124,7 +123,7 @@ def save_chart_tables(processed, extra, heating, growing, freeze_thaw, enso_free
     if gdp_stat is not None:
         tests.append({'test': 'gdp_growth_el_nino_minus_neutral', 'statistic': 'mean_difference_pct_points',
                       'estimate': gdp_stat['diff'], 'ci_lower': gdp_stat['lo'], 'ci_upper': gdp_stat['hi'],
-                      'status': gdp_stat['status'], 'n_comparison': None, 'n_reference': None})
+                      'status': gdp_stat['status'], 'n_comparison': gdp_stat['n_en'], 'n_reference': gdp_stat['n_ne']})
     save_csv(pd.DataFrame(tests), processed / 'chart_impact_tests.csv')
     index = pd.DataFrame(CHART_SOURCES, columns=['chart_file', 'source_tables', 'what_is_plotted'])
     index.insert(1, 'chart_data_file', 'chart_data/' + index['chart_file'].str.replace('.png', '.csv', regex=False))
