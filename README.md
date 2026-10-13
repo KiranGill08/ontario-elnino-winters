@@ -1,212 +1,186 @@
-ENSO is one of the most important climate phenomena on Earth due to its ability to change global atmospheric circulation, which influences temperature and precipitation across the globe. It has three states/phases:
-
-1. El Nino / warm phase: the unusual warm ocean temperatures in the eastern Pacific
-2. La Nina / cool phase: the unusual cool ocean temperatures in the eastern Pacific
-3. Neutral: neither El Nino nor La Nina
-
 # Ontario Winters and El Niño
 
-A five-station analysis of how past El Niño winters looked in Ontario, from south to north.
+**Did El Niño winters in Ontario actually arrive warmer, less snowy and less extreme — and does the effect change from south to north?**
 
-> **How to use this file:** replace everything in [square brackets] with your own numbers once you have them. The station IDs below come from ECCC page addresses and station inventories, so confirm any marked **[confirm]** on ECCC's station pages. Delete this note when you're done.
+A six-station study of 45 winters (1981–82 to 2025–26), built as a complete analytics project: a reproducible Python pipeline, a SQLite star schema, a Power BI dashboard, a published findings report, and a deployed machine-learning service.
+
+NOAA issued an El Niño advisory in August 2026 with a greater than 90% chance of a very strong El Niño through winter 2026-27. Ontario municipalities set winter maintenance budgets in the autumn. This project asks what 45 years of station records actually support — and, just as deliberately, what they do not.
+
+> This is a historical analysis, not a forecast. It reports association, not causation.
 
 ---
 
-## 1. Question
+## Headline results
 
-**Were El Niño winters in Ontario warmer, less snowy, or less extreme than other winters, and does the effect change from south to north?**
-
-A very strong El Niño is developing for winter 2026-27. Before it arrives, this project looks back at winters from 1981-82 to 2025-26 at five Ontario stations to see what El Niño winters actually looked like here.
-
-This is a **historical analysis, not a forecast**. It shows associations with El Niño, not proof that El Niño caused them.
-
-## 2. Key findings (write these last)
-
-[Write 3 to 5 short findings, each with its uncertainty. Do not write them until the analysis is finished.]
-
-- [At Thunder Bay, El Niño winters averaged X °C warmer than neutral winters (95% confidence interval: X to X), based on N winters.]
-- [Snowfall differences were inconclusive at most stations, because the confidence intervals include zero.]
-- [The south-to-north pattern was / was not consistent across stations.]
-
-## 3. Stations and station IDs
-
-Environment and Climate Change Canada (ECCC) often splits one place into several station records over the years, each with its own **StationID** (used to download data) and **Climate ID** (the official identifier). Each station below therefore uses two records, joined together. **Where both records report the same day, the newer ID is kept.**
-
-| Region | Station | Newer record: StationID (Climate ID) | Older record: StationID (Climate ID) |
-|---|---|---|---|
-| Southwest | Windsor A | 54738 ([Climate ID, confirm]) | 4716 (6139525) |
-| South-central | Toronto Pearson | 51459 (6158731), Toronto Intl A | 5097 (6158733), Toronto Lester B. Pearson Int'l A |
-| East | Ottawa Macdonald-Cartier | 49568 (6106001 **[confirm]**), Ottawa Intl A | 4337 (6106000), Ottawa Macdonald-Cartier Int'l A |
-| Northeast | Sudbury A | 50840 (6068153) | 4132 (6068150) |
-| Northwest | Thunder Bay | 30682 (6048268), Thunder Bay CS | 4055 (6048261), Thunder Bay A |
-
-Approximate locations: Windsor 42.28°N, 82.96°W; Toronto Pearson 43.68°N, 79.63°W; Ottawa 45.32°N, 75.67°W; Sudbury 46.63°N, 80.80°W; Thunder Bay 48.37°N, 89.33°W. The same table, one row per ID, is in `config/stations.csv`.
-
-**Where the records hand over** (fill in from the download summaries):
-
-| Station | Older record ends | Newer record starts | Gap between them? | Snowfall usable through |
-|---|---|---|---|---|
-| Windsor | [ ] | [ ] | [ ] | about 2017-18 **[confirm]** |
-| Toronto | about 2013 | about mid-2013 | [ ] | [ ] |
-| Ottawa | about 2011 | [ ] | [ ] | [ ] |
-| Sudbury | [ ] | about 2014 | [ ] | [ ] |
-| Thunder Bay | about 2004 | about 2003-04 | [ ] | [ ] |
-
-## 4. How the stations were chosen
-
-Stations had to meet four tests: (1) most winters with complete daily temperature, (2) snowfall reported, (3) a clean or well-documented switch between old and new records, and (4) a spread across Ontario.
-
-**Stations tested and not used**
-
-| Station | IDs tested | Why it was not used |
-|---|---|---|
-| London | 4789 (6144475), 10999 (6144478), 50093 (6144473) | No daily data from about 2003 to 2012, which includes the strong El Niño winter 2009-10 |
-| Geraldton | 4003, 53519, 54240, 54858 | No usable daily data after 2018; also an inland site close to Thunder Bay and Sudbury |
-| Kingsville MOE | 4647 (6134190) | Only 24 of 45 winters passed the strict 85-of-90-day rule; overlaps Windsor's region |
-| Welcome Island (AUT) | 4061 (6049443) | No temperature values for 1981-82 to 1995-96; only 18 of 45 winters usable **[confirm which station this was]** |
-
-Lesson recorded here for anyone repeating this: the ECCC station inventory shows only the first and last year of daily data, not whether the years in between (or the recent years) actually contain usable values. Always download and check.
-
-## 5. Data sources
-
-| Dataset | Provider | Used for | Downloaded on |
-|---|---|---|---|
-| Daily climate data (max, min, mean temperature; total snowfall) | Environment and Climate Change Canada, Historical Climate Data | Winter measures per station | [date] |
-| Relative Oceanic Niño Index (RONI), DJF values | NOAA Climate Prediction Center | Labelling each winter El Niño, neutral, or La Niña | [date] |
-| Station inventory (`climate-stations.csv`) | Environment and Climate Change Canada | Finding station IDs and record years | [date; confirm source] |
-
-**Links**
-- ECCC Climate Data Extraction Tool (Daily climate data): https://climate-change.canada.ca/climate-data/#/daily-climate-data
-- ECCC bulk daily download (one station-year per request): `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=<ID>&Year=<YYYY>&Month=1&Day=1&timeframe=2&submit=Download+Data`
-- RONI text file: https://www.cpc.ncep.noaa.gov/data/indices/RONI.ascii.txt
-- ECCC station inventory folder: https://collaboration.cmc.ec.gc.ca/cmc/climate/Get_More_Data_Plus_de_donnees/
-
-**Index choice:** [State that you used RONI, NOAA's official ENSO index since February 2026, and whether you compared with ONI. The list of strong winters depends on the index.]
-
-## 6. How the data were collected
-
-Yearly files for each station ID are saved unchanged in `data/raw/<station>/`, then combined into one daily table per station in `data/processed/<station>_daily.csv`.
-
-```bash
-python download_station.py windsor 54738 4716
-python download_station.py toronto 51459 5097
-python download_station.py ottawa 49568 4337
-python download_station.py sudbury 50840 4132
-python download_station.py thunderbay 30682 4055
-```
-
-List the newer ID first. The script tests one download, fetches every year from 1981 to 2026 for each ID, and prints a summary showing each ID's date range and how complete temperature and snowfall are.
-
-**Helper scripts used to choose stations**
-- `find_stations.py`: searches the station inventory by name or location
-- `screen_stations.py`: tests several single-ID candidates at once
-- `probe_station.py`: shows which years each ID really supplies, with about a dozen downloads
-- `compare_stations.py`: compares all saved station files in one table
-
-## 7. Method
-
-**Winter definition:** December, January, and February, named after the year in which February falls (December 1997 to February 1998 is winter "1997-98").
-
-**ENSO classes** (using the December-February index value):
-
-| Class | DJF value |
+| Finding | Evidence |
 |---|---|
-| El Niño | +0.5 or higher |
-| Strong El Niño (subset) | +1.5 or higher |
-| Neutral | between -0.5 and +0.5 |
-| La Niña | -0.5 or lower |
+| **Strong El Niño winters were clearly warmer** | +2.4 to +4.1 °C above neutral winters at 5 of 6 stations, 95% intervals excluding zero |
+| **The warming is a northern effect** | Thunder Bay +4.08 °C vs Toronto +2.37 °C. The difference between them is itself significant: **+1.20 °C, 95% CI [+0.20, +2.27]** |
+| **Southern Ontario lost snow days** | Toronto −9.4 and Windsor −12.4 snow days in strong El Niño winters, both intervals excluding zero |
+| **Extreme cold did not disappear** | Thunder Bay still recorded 17–33 days at or below −20 °C during strong El Niño winters |
+| **Moderate El Niño winters are indistinguishable from any other winter** | Every all-El Niño temperature comparison is inconclusive at every station. The signal lives entirely in the 5 strong events |
 
-**Strong El Niño winters** in both ONI and RONI: 1982-83, 1991-92, 1997-98, 2009-10, and 2015-16. [Note that 2023-24 is strong in ONI but not RONI, and 1986-87 the reverse. Recheck against the current files, since 2009-10 sits right on the +1.5 cutoff.]
+The last two rows are the ones a planner needs most and the ones a headline would drop.
 
-**Measures per station, per winter**
-- Mean winter temperature and its anomaly (difference from the station's 1991-2020 winter average)
-- Total snowfall (cm) and snow days (days with at least 1 cm)
-- Very cold days (minimum temperature at or below -20 °C)
+**Direction of effect:** all 48 El Niño comparisons point the same way — warmer, less snow, fewer snow days, fewer very cold days. 18 clear zero, against the 2–3 expected by chance.
 
-**Data quality rule:** a winter is used for a measure only if it passes the WMO "3 and 5" rule in each of December, January, and February: no more than 3 consecutive and no more than 5 total missing days per month. This is the rule ECCC uses for climate normals. When the daily mean temperature is missing but the maximum and minimum exist, the mean is taken as (max + min) / 2. Snowfall gaps are not filled, because a blank normally means "not observed", not zero. [If you used the stricter 85-of-90-day rule for any station, say so here.]
+---
 
-**Comparison and uncertainty:** for each station, El Niño winters are compared with neutral winters. Every difference has a bootstrap 95% confidence interval (10,000 resamples of winters). If an interval includes zero, the result is called inconclusive.
+## Business questions and KPIs
 
-**Warming trend:** anomalies and a trend line are used so long-term warming is not mistaken for an El Niño effect.
+Each KPI is one location in one winter. A winter is December–February, named for the year February falls in.
 
-## 8. Data quality by station (fill from `compare_stations.py`)
+| ID | Business question | KPI | Result |
+|---|---|---|---|
+| **BQ1** | Were El Niño winters warmer? | Mean winter temperature; anomaly vs the station's own 1991–2020 baseline | Yes for **strong** events (5 of 6 stations clear zero). Inconclusive for El Niño overall |
+| **BQ2** | Did they bring less snow? | Total winter snowfall (cm) | Yes in the south (Windsor −61 cm, London −52 cm, Toronto −30 cm). Inconclusive in the north |
+| **BQ3** | Were there fewer very cold days? | Days with minimum ≤ −20 °C | Fewer, most clearly Thunder Bay (−16.2 days). Never zero |
+| **BQ4** | Does the effect differ south to north? | Paired difference-of-differences between station pairs | **Yes** — Thunder Bay's effect significantly exceeds Toronto's |
+| **BQ5** | Fewer days with substantial new snow? | Days with ≥ 1 cm new snow | Yes in the south, inconclusive in the north |
+| **BQ6** | Are strong events different? | All of the above, strong subset | **This is where the entire signal is** |
 
-| Station | Winters passing (temperature) | Winters passing (snowfall) | Last complete snowfall winter | Strong winters usable (temp / snow, out of 5) |
+Full definitions: [`docs/kpis_and_business_questions.md`](docs/kpis_and_business_questions.md). Full results: [`reports/findings.md`](reports/findings.md).
+
+### Temperature anomaly, strong El Niño minus neutral (RONI)
+
+Stations ordered south to north.
+
+| Station | Latitude | Difference | 95% CI | Verdict |
 |---|---|---|---|---|
-| Windsor | [ ] | [ ] | [ ] | [ ] |
-| Toronto | [ ] | [ ] | [ ] | [ ] |
-| Ottawa | [ ] | [ ] | [ ] | [ ] |
-| Sudbury | [ ] | [ ] | [ ] | [ ] |
-| Thunder Bay | [ ] | [ ] | [ ] | [ ] |
+| Windsor | 42.28°N | +2.57 °C | [+0.78, +4.34] | clears zero |
+| London | 43.03°N | +2.58 °C | [+0.65, +4.40] | clears zero |
+| Toronto Pearson | 43.68°N | +2.37 °C | [+0.35, +4.23] | clears zero |
+| Ottawa | 45.32°N | +1.41 °C | [−0.68, +3.37] | inconclusive |
+| Sudbury | 46.63°N | +3.07 °C | [+1.05, +4.93] | clears zero |
+| Thunder Bay | 48.37°N | **+4.08 °C** | [+1.87, +6.23] | clears zero |
 
-## 9. Results (write these last)
+Every difference carries a 10,000-sample bootstrap interval. Where an interval includes zero we call the result inconclusive and say so, rather than reporting the point estimate alone.
 
-[Insert your main charts here.]
+---
 
-```
-![Temperature anomaly by ENSO class](reports/figures/temp_anomaly_boxplot.png)
-![El Niño minus neutral difference by station](reports/figures/difference_by_station.png)
-```
+## What is in this repository
 
-[Add one sentence under each chart saying what it shows and how certain it is.]
+| Layer | Built with | Where |
+|---|---|---|
+| **Collection** | Python, ECCC bulk API, NOAA RONI/ONI | [`python/01_collection/`](python/01_collection) |
+| **Cleaning** | pandas, WMO "3 and 5" completeness rule, full audit trail | [`python/02_cleaning/`](python/02_cleaning) |
+| **Analysis** | Bootstrap confidence intervals, trend control, paired regional tests | [`python/03_analysis/`](python/03_analysis) |
+| **Visualisation** | matplotlib, 17 charts with sample sizes and exclusions stated on every panel | [`python/04_eda/`](python/04_eda), [`reports/figures/`](reports/figures) |
+| **Database** | SQLite star schema — `dim_city`, `fact_winter_kpis`, `result_*` | [`python/05_database/`](python/05_database), [`sql/`](sql) |
+| **Dashboard** | Power BI, 5 pages | [`dashboard/`](dashboard) |
+| **Machine learning** | scikit-learn, FastAPI, Docker | [`ml-winter-prediction/`](ml-winter-prediction) |
+| **Reports** | Findings report, ML report, methodology, validation | [`reports/`](reports), [`docs/`](docs) |
 
-## 10. Limitations
-
-- Only about five strong El Niño winters exist in the study period, so results for "strong" events are uncertain.
-- The list of strong winters depends on the index used (RONI or ONI).
-- Every station joins two ECCC records, so a small shift in readings at the switch date is possible. [Add any comparison you made on overlapping days.]
-- **Windsor's rain and snow are missing after about 2018.** Windsor is used for temperature through 2025-26 but for snowfall only through about 2017-18. All five strong El Niño winters fall in that period. [Add similar notes for any other station whose snowfall ends early.]
-- Snowfall periods differ between stations, so snowfall comparisons across stations cover different years. Comparisons are made within each station first.
-- Ontario's El Niño signal is naturally weaker than in western Canada, so differences may be small.
-- The analysis shows association, not cause. Other factors, such as the Arctic Oscillation, also affect Ontario winters.
-- Natural gas heating is not captured, so the results say nothing about total energy use.
-- Toronto stands in for southern Ontario's largest city, but the southwest is represented only by Windsor.
-
-## 11. Project structure
-
-```
-ontario-elnino-winters/
-  config/stations.csv      station IDs, one row per record
-  climate-stations.csv     station inventory
-  data/raw/<station>/      yearly files, unchanged (windsor, toronto, ottawa, sudbury, thunderbay)
-  data/processed/          <station>_daily.csv, one per station
-  notebooks/               analysis notebooks
-  sql/                     SQL queries
-  src/                     download and helper scripts
-  reports/                 report and figures
-  README.md
-  requirements.txt
-```
-
-[Move the London, Geraldton, and Kingsville folders and files to an `excluded/` folder rather than deleting them, so the reasons in section 4 stay reproducible.]
-
-## 12. How to rerun
-
-**Requirements:** Python 3.11 or newer.
+One command reproduces every number:
 
 ```bash
-git clone [your repository URL]
-cd ontario-elnino-winters
-pip install -r requirements.txt
+python python/run_pipeline.py
 ```
 
-1. Run the five download commands in section 6.
-2. Run `python compare_stations.py` and check the table matches section 8.
-3. Run the notebooks in order: `notebooks/01_[name].ipynb`, `02_[name].ipynb`, `03_[name].ipynb`.
+It writes a timestamped folder under `runs/`, refuses to overwrite existing results, and records a `run_manifest.json` with SHA-256 hashes of every input, the library versions and every setting used.
 
-## 13. Data licence and credits
+---
 
-- Climate observations: Environment and Climate Change Canada. [Check the licence terms on the data page and state them here.]
-- ENSO index: NOAA Climate Prediction Center. [Check and state the terms.]
-- Author: [your name] · [contact or GitHub profile]
+## Data quality, stated up front
 
-## 14. Status
+45 winters per station. These are how many are actually usable after the completeness rule — blank, never zero-filled.
 
-- [x] Stations chosen and station IDs recorded
-- [ ] All five stations downloaded and combined
-- [ ] Completeness table (section 8) filled in
-- [ ] Winter summary table (pandas and SQL match)
-- [ ] Charts finished
-- [ ] Confidence intervals added
-- [ ] Report written
-- [ ] README completed
+| Station | Temperature | Snowfall | Cold days |
+|---|---|---|---|
+| Windsor | 39 / 45 | 31 / 45 | 37 / 45 |
+| London | 44 / 45 | 20 / 45 | 41 / 45 |
+| Toronto Pearson | 45 / 45 | 37 / 45 | 40 / 45 |
+| Ottawa | 43 / 45 | 40 / 45 | 38 / 45 |
+| Sudbury | 40 / 45 | 36 / 45 | 32 / 45 |
+| Thunder Bay | 42 / 45 | **12 / 45** | 37 / 45 |
+
+Thunder Bay reports snowfall in only 12 of 45 winters, which is why its snow results stay inconclusive while its temperature results are the strongest in the study. Zero-filling those gaps would have made Ontario look less snowy than it was, and the finding would have been an artifact of missing data.
+
+Four candidate stations were tested and rejected, with reasons recorded rather than deleted — one had a five-year gap that swallowed the 2009-10 El Niño winter entirely.
+
+---
+
+## Machine learning: a model we recommend against deploying
+
+[`ml-winter-prediction/`](ml-winter-prediction) asks whether this history can *anticipate* a mild winter before it starts. The honest answer is no, and the work is published because of that rather than in spite of it.
+
+| Metric | Model | Do-nothing baseline |
+|---|---|---|
+| Accuracy | 68.4% | **69.2%** |
+| Precision | 47.4% | — |
+| ROC AUC | 0.609 | 0.500 |
+
+**The model loses to assuming no winter is ever mild.** Two results make the exercise worth reading anyway:
+
+- **Group leakage, measured.** Six stations share each winter and carry an identical ENSO value. Split rows at random and a random forest scores **0.87 AUC**; split by winter and the same model scores **0.55**. The ordinary evaluation would have shipped a model that does not work.
+- **A boundary that cost a winter.** NOAA's thresholds are inclusive, so RONI +1.5 *is* a strong El Niño. `pd.cut`'s default excluded winter 1987 and made the strong band look like four winters instead of five. Caught by a unit test.
+
+The model is served anyway — containerised, with `/predict` returning its own quality metrics and a guidance string stating it must not set budgets, and `/baseline` returning the historical rates that *are* defensible.
+
+Full write-up: [`reports/ml_winter_prediction_report.md`](reports/ml_winter_prediction_report.md).
+
+---
+
+## Reproducibility
+
+- **Validation gate.** `validate_results()` runs before any export: key uniqueness, row counts, calendar coverage, ENSO joins, baselines, anomalies and eligibility. The pipeline fails rather than writing unverified output.
+- **Independent verification.** [`docs/validation.md`](docs/validation.md) records a line-by-line reconciliation of all 98,096 daily rows against source, recomputation of every KPI, and seven automated tests.
+- **Fixed seeds.** Bootstrap seed and sample count are configuration, not defaults.
+- **Single source of truth.** Every setting lives in [`python/config.py`](python/config.py). Changing the primary ENSO index from ONI to RONI is a one-line change that propagates through every table, chart and report.
+- **API tests.** Nine tests cover the served model, including one asserting the project's central finding — that a strong El Niño scores higher in Thunder Bay than in Windsor.
+
+---
+
+## Limitations
+
+Stated here rather than buried, because they decide how much weight the findings carry.
+
+- **Five strong El Niño winters.** 1983, 1987, 1992, 1998 and 2016. Everything in the "strong" column rests on them. Five events cannot establish a rate.
+- **Association, not cause.** The Arctic Oscillation and other drivers also act on Ontario winters.
+- **Six stations stand in for a province.** The southwest is represented by Windsor and London only; nothing lies in the far north.
+- **The index choice matters.** ONI and RONI disagree on 6 of 45 winters and on which count as strong. This project uses RONI, NOAA's official index since February 2026, and saves both.
+- **Natural gas heating is not in the data**, so nothing here supports a claim about total energy use.
+
+---
+
+## Running it
+
+```bash
+pip install -r requirements.txt
+python python/run_pipeline.py                      # full analysis, new runs/ folder
+python python/05_database/load_database.py         # load that run into SQLite
+```
+
+The ML service:
+
+```bash
+cd ml-winter-prediction
+docker build -t ontario-winter .
+docker run --name winter-api -p 8000:8000 ontario-winter
+```
+
+Then `http://127.0.0.1:8000/docs`. See [`ml-winter-prediction/readme.rst`](ml-winter-prediction/readme.rst).
+
+---
+
+## Data sources
+
+| Dataset | Provider |
+|---|---|
+| Daily climate records (temperature, snowfall) | Environment and Climate Change Canada, Historical Climate Data |
+| Relative Oceanic Niño Index (RONI) and ONI, DJF | NOAA Climate Prediction Center |
+| Maple syrup production, Ontario GDP | Statistics Canada |
+
+Station records are joined across multiple ECCC station IDs per location, documented in [`data/raw/stations.csv`](data/raw/stations.csv) — every Ontario city in this study is really two or more weather stations over time.
+
+---
+
+## Team
+
+| Contributor | Focus |
+|---|---|
+| **Kiran Gill** | Project lead, data collection, ENSO index definition and the switch to RONI, visual rebuild |
+| **Ashish Sachdev** | Data cleaning and quality framework, KPI calculation, figures and reports |
+| **Kumari** | Power BI dashboard |
+| **Samir Omer** | Project scaffold and roadmap, machine learning and model deployment |
+
