@@ -95,6 +95,27 @@ Confusion matrix, out-of-fold, 247 location-winters:
 
 **Accuracy is the wrong verdict metric here, in both directions.** Both figures sit near 69% because 69% of winters are not mild — so accuracy would have *undersold* a model whose ranking (AUC 0.609) does carry information, while also failing to show that the labels are useless. Neither fact is visible from accuracy alone.
 
+### Why the model is weak: the relationship it had to learn
+
+Treating the index as continuous rather than as classes shows what the model was working with.
+
+![Winter temperature anomaly vs DJF RONI, by station](figures/index_vs_temp_anomaly.png)
+
+| Station | Slope (°C per index unit) | 95% CI | r |
+|---|---|---|---|
+| Windsor | +0.30 | [−0.22, +0.70] | 0.19 |
+| London | +0.37 | [−0.14, +0.77] | 0.21 |
+| Toronto Pearson | +0.25 | [−0.25, +0.65] | 0.14 |
+| Ottawa | +0.23 | [−0.29, +0.64] | 0.15 |
+| Sudbury | +0.39 | [−0.17, +0.85] | 0.21 |
+| **Thunder Bay** | **+0.87** | **[+0.34, +1.36]** | **0.40** |
+
+**Thunder Bay is the only station whose slope interval excludes zero**, at roughly three times Toronto's slope. Everywhere else the relationship is real in direction but cannot be distinguished from no relationship at all.
+
+The correlations are the number that matters for section 5's results: between 0.14 and 0.40. A classifier cannot manufacture separation that is not in the underlying variable, and these scatters are what an AUC of 0.609 looks like before it is thresholded. The model is not underfitted or badly specified — the signal is genuinely this faint, and the honest reporting of that is the finding.
+
+This also explains why the latitude interaction earned its place as a feature: the slope at Thunder Bay is not a stronger version of the slope at Windsor, it is a different relationship, and a model without an interaction term cannot represent that.
+
 ### What the base rates support, where the model does not
 
 | ENSO band | Location-winters | Distinct winters | Mild rate |
@@ -104,6 +125,8 @@ Confusion matrix, out-of-fold, 247 location-winters:
 | Neutral | 46 | 8 | 26.1% |
 | El Niño | 57 | 11 | **17.5%** |
 | **Strong El Niño** | 29 | **5** | **69.0%** |
+
+![Mild-winter rate by ENSO band](figures/ml_mild_rate_by_enso_band.png)
 
 Moderate El Niño winters were mild *less* often than neutral winters. The association is a step at +1.5, not a slope — so "an El Niño is coming" carries no information on this record, while "a *strong* El Niño is coming" does.
 
@@ -119,6 +142,8 @@ El Niño minus other winters, mild-rate difference, ordered south to north:
 | Ottawa | 45.32°N | +10 pts |
 | Sudbury | 46.63°N | +22 pts |
 | Thunder Bay | 48.37°N | +24 pts |
+
+![Mild-winter rate difference by latitude](figures/ml_mild_rate_by_latitude.png)
 
 Winter 1987 shows the whole pattern in a single season. Same ocean, same index value of exactly +1.5: Thunder Bay finished **3.6 °C** above its baseline and Sudbury 1.9 °C above, while Toronto finished slightly *below* and Windsor and London barely moved. A single province-wide figure for that winter would report about half a degree above normal and describe none of those six places.
 

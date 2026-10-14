@@ -22,6 +22,10 @@ NOAA issued an El Niño advisory in August 2026 with a greater than 90% chance o
 
 The last two rows are the ones a planner needs most and the ones a headline would drop.
 
+![Winter temperature anomaly differences by station](reports/figures/temp_anomaly_differences.png)
+
+*Left: all El Niño winters — every interval crosses zero. Right: strong El Niño winters only — five of six clear it. Sample sizes are printed on every row, and winters failing the completeness rule are excluded rather than filled.*
+
 **Direction of effect:** all 48 El Niño comparisons point the same way — warmer, less snow, fewer snow days, fewer very cold days. 18 clear zero, against the 2–3 expected by chance.
 
 ---
@@ -54,7 +58,19 @@ Stations ordered south to north.
 | Sudbury | 46.63°N | +3.07 °C | [+1.05, +4.93] | clears zero |
 | Thunder Bay | 48.37°N | **+4.08 °C** | [+1.87, +6.23] | clears zero |
 
+![El Niño minus neutral by latitude](reports/figures/latitude_gradient.png)
+
+*Stations plotted at their true latitude. Temperature (left) strengthens northward; snowfall and snow days (centre, right) weaken northward — the two effects run in opposite directions across the province.*
+
 Every difference carries a 10,000-sample bootstrap interval. Where an interval includes zero we call the result inconclusive and say so, rather than reporting the point estimate alone.
+
+### Dose-response: how much warmer, per unit of index
+
+Comparing groups is one view. The other is to treat the index as continuous and ask how much a winter warms per unit of RONI.
+
+![Winter temperature anomaly vs DJF RONI, by station](reports/figures/index_vs_temp_anomaly.png)
+
+*Thunder Bay warms **+0.87 °C per index unit** (95% CI [+0.34, +1.36], r=0.40) — the **only** station whose slope interval excludes zero, and roughly three times Toronto's +0.25. Note how wide the scatter is at every station: the relationship is real in the north and weak everywhere, which is precisely why the predictive model in the next section performs as poorly as it does.*
 
 ---
 
@@ -70,6 +86,10 @@ Every difference carries a 10,000-sample bootstrap interval. Where an interval i
 | **Dashboard** | Power BI, 5 pages | [`dashboard/`](dashboard) |
 | **Machine learning** | scikit-learn, FastAPI, Docker | [`ml-winter-prediction/`](ml-winter-prediction) |
 | **Reports** | Findings report, ML report, methodology, validation | [`reports/`](reports), [`docs/`](docs) |
+
+![Power BI dashboard, overview and station map](dashboard/screenshort/overview_and_station_map.png)
+
+*Power BI overview page. Every figure shown is read from the project database — no statistics are recalculated in the dashboard layer.*
 
 One command reproduces every number:
 
@@ -94,6 +114,10 @@ It writes a timestamped folder under `runs/`, refuses to overwrite existing resu
 | Sudbury | 40 / 45 | 36 / 45 | 32 / 45 |
 | Thunder Bay | 42 / 45 | **12 / 45** | 37 / 45 |
 
+![Which winters are usable, by station and measure](reports/figures/winter_usability_grid.png)
+
+*Hatched cells are winters excluded by the completeness rule. The Thunder Bay snowfall row is the constraint that shapes what this project can and cannot claim.*
+
 Thunder Bay reports snowfall in only 12 of 45 winters, which is why its snow results stay inconclusive while its temperature results are the strongest in the study. Zero-filling those gaps would have made Ontario look less snowy than it was, and the finding would have been an artifact of missing data.
 
 Four candidate stations were tested and rejected, with reasons recorded rather than deleted — one had a five-year gap that swallowed the 2009-10 El Niño winter entirely.
@@ -114,6 +138,10 @@ Four candidate stations were tested and rejected, with reasons recorded rather t
 
 - **Group leakage, measured.** Six stations share each winter and carry an identical ENSO value. Split rows at random and a random forest scores **0.87 AUC**; split by winter and the same model scores **0.55**. The ordinary evaluation would have shipped a model that does not work.
 - **A boundary that cost a winter.** NOAA's thresholds are inclusive, so RONI +1.5 *is* a strong El Niño. `pd.cut`'s default excluded winter 1987 and made the strong band look like four winters instead of five. Caught by a unit test.
+
+![Mild-winter rate by ENSO band](reports/figures/ml_mild_rate_by_enso_band.png)
+
+*Why the model struggles: only the strong band separates from the base rate, and it rests on five winters. Moderate El Niño winters are milder less often than neutral ones.*
 
 The model is served anyway — containerised, with `/predict` returning its own quality metrics and a guidance string stating it must not set budgets, and `/baseline` returning the historical rates that *are* defensible.
 
@@ -177,10 +205,12 @@ Station records are joined across multiple ECCC station IDs per location, docume
 
 ## Team
 
-| Contributor | Focus |
-|---|---|
-| **Kiran Gill** | Project lead, data collection, ENSO index definition and the switch to RONI, visual rebuild |
-| **Ashish Sachdev** | Data cleaning and quality framework, KPI calculation, figures and reports |
-| **Kumari** | Power BI dashboard |
-| **Samir Omer** | Project scaffold and roadmap, machine learning and model deployment |
+| Contributor | GitHub | Focus |
+|---|---|---|
+| **Kiran Gill** | [@KiranGill08](https://github.com/KiranGill08) | Project lead, data collection, ENSO definition and the switch to RONI, visual rebuild |
+| **Ashish Sachdev** | [@Ashish-Sachdev](https://github.com/Ashish-Sachdev) | Data cleaning and quality framework, KPI calculation, figures and reports |
+| **Kumari** | [@Kumari2922](https://github.com/Kumari2922) | Power BI dashboard |
+| **Samir Omer** | [@samiromer2](https://github.com/samiromer2) | Project scaffold and roadmap, machine learning and model deployment |
+
+Repository: [KiranGill08/ontario-elnino-winters](https://github.com/KiranGill08/ontario-elnino-winters)
 
